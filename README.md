@@ -2,7 +2,7 @@
 
 A free, offline-first blackjack basic-strategy trainer. Runs entirely in the browser — no accounts, no server. Built with Vue 3 + Vite + TypeScript and deployed to GitHub Pages.
 
-**Live app:** https://woshikie.github.io/blackjack-simulator/
+**Live app:** https://woshikie.github.io/Blackjack-Trainer/
 
 ## What it trains
 
