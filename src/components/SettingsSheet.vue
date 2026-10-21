@@ -115,41 +115,52 @@ function onDenominationsChange(event: Event): void {
       </label>
     </div>
 
-    <h3>Practice</h3>
-    <div class="form-grid">
-      <label>Feedback on mistakes
-        <select v-model="state.practice.feedbackMode">
-          <option v-for="mode in FEEDBACK_MODES" :key="mode" :value="mode">{{ mode }}</option>
-        </select>
-      </label>
-      <label>Auto-deal next hand
-        <select v-model="state.practice.autoDeal">
-          <option v-for="mode in AUTO_MODES" :key="mode" :value="mode">{{ mode }}</option>
-        </select>
-      </label>
-      <label>Default bet (first hand)
-        <input type="number" :min="1" :value="state.practice.defaultBet" @change="settings.updatePractice({ defaultBet: Math.max(1, Number(($event.target as HTMLInputElement).value) || 1) })" />
-      </label>
-      <label>Chip denominations (comma separated)
-        <input type="text" :value="state.practice.chipDenominations.join(', ')" @change="onDenominationsChange" />
-      </label>
-    </div>
-    <div class="check-grid">
-      <label :class="{ disabled: state.rules.csm }">
-        <input v-model="state.practice.counting" type="checkbox" :disabled="state.rules.csm" /> Hi-Lo counting overlay
-      </label>
-      <label :class="{ disabled: !state.practice.counting || state.rules.csm }">
-        <input v-model="state.practice.alwaysShowCount" type="checkbox" :disabled="!state.practice.counting || state.rules.csm" /> Always show count
-      </label>
-      <label>
-        <input v-model="state.practice.skipInsurance" type="checkbox" /> Skip insurance offers
-        <small>Auto-declines insurance and even money without grading</small>
-      </label>
-      <label>
-        <input v-model="state.practice.skipSurrender" type="checkbox" /> Skip surrender
-        <small>Surrender is not offered or graded; play the fallback move</small>
-      </label>
-    </div>
+    <template v-if="state.mode === 'practice'">
+      <h3>Practice</h3>
+      <div class="form-grid">
+        <label>Feedback on mistakes
+          <select v-model="state.practice.feedbackMode">
+            <option v-for="mode in FEEDBACK_MODES" :key="mode" :value="mode">{{ mode }}</option>
+          </select>
+        </label>
+        <label>Auto-deal next hand
+          <select v-model="state.practice.autoDeal">
+            <option v-for="mode in AUTO_MODES" :key="mode" :value="mode">{{ mode }}</option>
+          </select>
+        </label>
+        <label>Default bet (first hand)
+          <input type="number" :min="1" :value="state.practice.defaultBet" @change="settings.updatePractice({ defaultBet: Math.max(1, Number(($event.target as HTMLInputElement).value) || 1) })" />
+        </label>
+        <label>Chip denominations (comma separated)
+          <input type="text" :value="state.practice.chipDenominations.join(', ')" @change="onDenominationsChange" />
+        </label>
+      </div>
+      <div class="check-grid">
+        <label :class="{ disabled: state.rules.csm }">
+          <input v-model="state.practice.counting" type="checkbox" :disabled="state.rules.csm" /> Hi-Lo counting overlay
+        </label>
+        <label :class="{ disabled: !state.practice.counting || state.rules.csm }">
+          <input v-model="state.practice.alwaysShowCount" type="checkbox" :disabled="!state.practice.counting || state.rules.csm" /> Always show count
+        </label>
+        <label>
+          <input v-model="state.practice.skipInsurance" type="checkbox" /> Skip insurance offers
+          <small>Auto-declines insurance and even money without grading</small>
+        </label>
+        <label>
+          <input v-model="state.practice.skipSurrender" type="checkbox" /> Skip surrender
+          <small>Surrender is not offered or graded; play the fallback move</small>
+        </label>
+      </div>
+    </template>
+    <template v-else>
+      <h3>Live</h3>
+      <div class="check-grid">
+        <label :class="{ disabled: state.rules.csm }">
+          <input v-model="state.practice.counting" type="checkbox" :disabled="state.rules.csm" /> Hi-Lo counting
+          <small>Drives the live count row and insurance / even-money advice</small>
+        </label>
+      </div>
+    </template>
 
     <footer class="sheet-footer">
       <div class="version-row">
