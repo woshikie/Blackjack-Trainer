@@ -146,10 +146,11 @@ body {
   font-weight: 700;
 }
 
-/* Live companion: table-side card entry and suggestions. */
+/* Live companion: table-side card entry and suggestions.
+   NOTE: width comes from stretch inside .app (it caps/centers at 980).
+   margin: 0 auto here would defeat flex-stretch and shrink the whole
+   view to fit-content on wide viewports — a centered skinny column. */
 .live-companion {
-  max-width: 980px;
-  margin: 0 auto;
   padding: 24px 16px;
   display: flex;
   flex-direction: column;
@@ -293,7 +294,12 @@ body {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 10px;
+  /* explicit width + inline auto margins centers the capped pad inside
+     its flex parent; plain auto margins would defeat flex-stretch and
+     collapse the grid to fit-content */
+  width: 100%;
   max-width: 440px;
+  margin-inline: auto;
 }
 
 .rank-pad .rank {
