@@ -4,6 +4,7 @@ import type { Rules } from '../domain/rules'
 
 export type FeedbackMode = 'strict' | 'guide' | 'lenient' | 'silent'
 export type AutoDeal = 'off' | 'slow' | 'normal' | 'fast'
+export type AppMode = 'practice' | 'live'
 
 export interface PracticeSettings {
   feedbackMode: FeedbackMode
@@ -17,6 +18,7 @@ export interface PracticeSettings {
 }
 
 export interface SettingsState {
+  mode: AppMode
   rules: Rules
   practice: PracticeSettings
 }
@@ -40,6 +42,7 @@ function sanitize(raw: unknown): SettingsState | null {
   if (typeof source.rules !== 'object' || source.rules === null) return null
   if (typeof source.practice !== 'object' || source.practice === null) return null
   return {
+    mode: source.mode === 'live' ? 'live' : 'practice',
     rules: normalizeRules({ ...DEFAULT_RULES, ...source.rules }),
     practice: {
       ...DEFAULT_PRACTICE,
@@ -51,6 +54,7 @@ function sanitize(raw: unknown): SettingsState | null {
 
 function defaults(): SettingsState {
   return {
+    mode: 'practice',
     rules: normalizeRules({ ...DEFAULT_RULES }),
     practice: { ...DEFAULT_PRACTICE, chipDenominations: [...DEFAULT_PRACTICE.chipDenominations] },
   }
@@ -93,11 +97,17 @@ export function createSettingsStore(storage: Storage | null = globalThis.localSt
   }
 
   function reset(): void {
+    state.mode = 'practice'
     state.rules = { ...DEFAULT_RULES }
     Object.assign(state.practice, DEFAULT_PRACTICE)
   }
 
-  return { state, updateRules, updatePractice, reset }
+  /** Top-level Practice / Live switch; persists across reloads. */
+  function setMode(mode: AppMode): void {
+    state.mode = mode
+  }
+
+  return { state, updateRules, updatePractice, setMode, reset }
 }
 
 export type SettingsStore = ReturnType<typeof createSettingsStore>

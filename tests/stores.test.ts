@@ -109,6 +109,19 @@ describe('settings store', () => {
     store.reset()
     expect(store.state.rules.decks).toBe(DEFAULT_RULES.decks)
     expect(store.state.practice.defaultBet).toBe(25)
+    expect(store.state.mode).toBe('practice')
+  })
+
+  it('switches and persists the app mode, rejecting unknown modes', () => {
+    const store = createSettingsStore(localStorage)
+    expect(store.state.mode).toBe('practice')
+    store.setMode('live')
+    expect(JSON.parse(localStorage.getItem(KEY)!)['mode']).toBe('live')
+    // re-loading stored state restores the live mode
+    const reloaded = createSettingsStore(localStorage)
+    expect(reloaded.state.mode).toBe('live')
+    localStorage.setItem(KEY, JSON.stringify({ rules: { decks: 1 }, practice: null, mode: 'banana' }))
+    expect(createSettingsStore(localStorage).state.mode).toBe('practice')
   })
 })
 

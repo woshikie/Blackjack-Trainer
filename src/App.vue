@@ -4,6 +4,7 @@ import type { Action } from './domain/strategy/correctPlay'
 import ActionBar from './components/ActionBar.vue'
 import CountOverlay from './components/CountOverlay.vue'
 import HelpSheet from './components/HelpSheet.vue'
+import LiveCompanion from './components/LiveCompanion.vue'
 import SelfTestSheet from './components/SelfTestSheet.vue'
 import SettingsSheet from './components/SettingsSheet.vue'
 import StatsSheet from './components/StatsSheet.vue'
@@ -83,7 +84,19 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   <div class="app">
     <header class="topbar">
       <h1>Blackjack Trainer</h1>
-      <div class="bank-controls">
+      <div class="mode-switch" role="tablist">
+        <button
+          class="mode"
+          :class="{ on: settings.state.mode === 'practice' }"
+          @click="settings.setMode('practice')"
+        >Practice</button>
+        <button
+          class="mode"
+          :class="{ on: settings.state.mode === 'live' }"
+          @click="settings.setMode('live')"
+        >Live</button>
+      </div>
+      <div class="bank-controls" v-if="settings.state.mode === 'practice'">
         <div class="bankroll" :class="{ low: needsTopUp }">Bankroll ${{ snapshot.bankroll }}</div>
         <button class="link" @click="game.topUp()">Reset bank</button>
         <button class="link" @click="game.resetSession()">New session</button>
@@ -96,12 +109,16 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
       </nav>
     </header>
 
-    <CountOverlay :game="game" />
-    <TableFelt :game="game" :settings="settings" />
+    <CountOverlay v-if="settings.state.mode === 'practice'" :game="game" />
+    <LiveCompanion v-else />
 
-    <div v-if="notice" class="notice" :class="notice.kind">{{ notice.text }}</div>
+    <template v-if="settings.state.mode === 'practice'">
+      <TableFelt :game="game" :settings="settings" />
 
-    <ActionBar :game="game" :settings="settings" />
+      <div v-if="notice" class="notice" :class="notice.kind">{{ notice.text }}</div>
+
+      <ActionBar :game="game" :settings="settings" />
+    </template>
 
     <SettingsSheet v-if="sheet === 'settings'" :settings="settings" :on-close="closeSheet" />
     <StatsSheet v-else-if="sheet === 'stats'" :stats="stats" :on-close="closeSheet" />

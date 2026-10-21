@@ -4,6 +4,21 @@ A GitHub Pages web app for practicing blackjack strategy play: grading decisions
 
 ## Language
 
+### Modes
+
+**App Mode**:
+The top-level selection between Practice (graded tables) and Live (the Live Companion). Persists across reloads.
+
+**Live Companion**:
+A table-side helper for real games: entered table cards drive an instant basic-strategy and insurance suggestion, with an optional running-count overlay. No grading, no bankroll, no stats.
+_Avoid_: live game, casino mode, second practice session
+
+**Card Entry**:
+Tapping the ranks that have appeared on the table. Rank-only: tens, jacks, queens, and kings are all entered as T; suits are never asked.
+
+**Turn Style**:
+The card-entry order, matching the table's deal rhythm: Player→Banker→Player (round-robin, as dealt) or Player→Player→Banker (player cards first). Entry order only; it never changes the strategy.
+
 ### Practice
 
 **Practice Session**:
