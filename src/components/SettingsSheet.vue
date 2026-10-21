@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { DeckCount, DoubleRule } from '../domain/rules'
 import type { AutoDeal, FeedbackMode, SettingsStore } from '../stores/settings'
+import { ref } from 'vue'
 
 const props = defineProps<{ settings: SettingsStore; onClose: () => void }>()
 const settings = props.settings
@@ -10,6 +11,36 @@ const FEEDBACK_MODES: FeedbackMode[] = ['strict', 'guide', 'lenient', 'silent']
 const AUTO_MODES: AutoDeal[] = ['off', 'slow', 'normal', 'fast']
 const DECK_OPTIONS: DeckCount[] = [1, 2, 4, 6, 8]
 const DOUBLE_OPTIONS: DoubleRule[] = ['any', '9-11', '10-11']
+
+const version = __APP_VERSION__
+const versionNote = ref<string | null>(null)
+
+/** Compare the running version against the freshly served version.json. */
+async function checkVersion(): Promise<void> {
+  try {
+    const res = await fetch(`${import.meta.env.BASE_URL}version.json?t=${Date.now()}`, { cache: 'no-store' })
+    const remote = (await res.json()) as { version: string }
+    versionNote.value =
+      remote.version === version
+        ? `up to date (v${version})`
+        : `newer version available (v${remote.version}) — force update`
+  } catch {
+    versionNote.value = 'version check failed'
+  }
+}
+
+/** Sweeper: unregister the service worker, drop caches, reload fresh. */
+async function forceUpdate(): Promise<void> {
+  if ('serviceWorker' in navigator) {
+    const registrations = await navigator.serviceWorker.getRegistrations()
+    await Promise.all(registrations.map((registration) => registration.unregister()))
+  }
+  if ('caches' in window) {
+    const keys = await caches.keys()
+    await Promise.all(keys.map((key) => caches.delete(key)))
+  }
+  window.location.reload()
+}
 
 function onDenominationsChange(event: Event): void {
   const target = event.target as HTMLInputElement
@@ -121,6 +152,11 @@ function onDenominationsChange(event: Event): void {
     </div>
 
     <footer class="sheet-footer">
+      <div class="version-row">
+        <span class="version-label">v{{ version }}<template v-if="versionNote"> · {{ versionNote }}</template></span>
+        <button class="link" @click="checkVersion">Check version</button>
+        <button class="link" @click="forceUpdate">Force update</button>
+      </div>
       <button class="secondary" @click="settings.reset()">Reset settings</button>
     </footer>
   </section>
