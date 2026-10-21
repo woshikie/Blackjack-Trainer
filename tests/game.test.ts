@@ -457,3 +457,43 @@ describe('rule changes between rounds', () => {
     expect(() => game.setRules({ ...DEFAULT_RULES }, mulberry32(3))).toThrow('expected phase betting')
   })
 })
+
+describe('payout integrity', () => {
+  it('a doubled win pays double the original bet', () => {
+    // 16 v 5: double → draws 5 for 21; dealer 8+9 = 17 stands
+    const game = makeGame({}, [c('T'), c('5'), c('6'), c('3'), c('5'), c('9')])
+    game.placeBet(BET)
+    game.deal()
+    game.decide('double')
+    expect(game.snapshot().hands[0]?.result).toBe('win')
+    expect(game.snapshot().bankroll).toBe(START_BANKROLL - 2 * BET + 4 * BET)
+  })
+
+  it('a doubled loss costs double the original bet', () => {
+    // 16 v T: double → draws 3 for 19; dealer T+3 = 13 hits 8 → 21 wins
+    const game = makeGame({}, [c('T'), c('T'), c('6'), c('3'), c('3'), c('8')])
+    game.placeBet(BET)
+    game.deal()
+    game.decide('double')
+    expect(game.snapshot().hands[0]?.result).toBe('lose')
+    expect(game.snapshot().bankroll).toBe(START_BANKROLL - 2 * BET)
+  })
+
+  it('a doubled push returns both stakes', () => {
+    // 16 v 6: double → draws 3 for 19; dealer 6+9 = 15 hits 4 → 19 pushes
+    const game = makeGame({}, [c('T'), c('6'), c('6'), c('9'), c('3'), c('4')])
+    game.placeBet(BET)
+    game.deal()
+    game.decide('double')
+    expect(game.snapshot().hands[0]?.result).toBe('push')
+    expect(game.snapshot().bankroll).toBe(START_BANKROLL)
+  })
+
+  it('a natural pays 3:2 on the original bet', () => {
+    const game = makeGame({}, [c('A'), c('5'), c('K'), c('T')])
+    game.placeBet(BET)
+    game.deal()
+    expect(game.snapshot().hands[0]?.result).toBe('blackjack')
+    expect(game.snapshot().bankroll).toBe(START_BANKROLL - BET + 25)
+  })
+})

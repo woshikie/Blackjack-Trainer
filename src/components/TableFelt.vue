@@ -89,7 +89,7 @@ function amountLabel(net: number): string {
         </div>
         <div class="hand-info">
           <span class="hand-total">{{ totalLabel(hand.cards) }}</span>
-          <span class="hand-bet">${{ hand.bet }}{{ hand.doubled ? ' ×2' : '' }}</span>
+          <span class="hand-bet">${{ hand.bet }}{{ hand.doubled ? ' (doubled)' : '' }}</span>
           <span v-if="hand.result" class="result-badge" :data-result="hand.result">{{ badgeText(hand) }}</span>
         </div>
       </div>
