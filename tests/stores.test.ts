@@ -123,6 +123,24 @@ describe('settings store', () => {
     localStorage.setItem(KEY, JSON.stringify({ rules: { decks: 1 }, practice: null, mode: 'banana' }))
     expect(createSettingsStore(localStorage).state.mode).toBe('practice')
   })
+
+  it('keeps the live turn style sane across saves', () => {
+    const store = createSettingsStore(null)
+    expect(store.state.live.turnStyle).toBe('p-b-p')
+    store.updateLive({ turnStyle: 'p-p-b' })
+    expect(store.state.live.turnStyle).toBe('p-p-b')
+    store.reset()
+    expect(store.state.live.turnStyle).toBe('p-b-p')
+
+    // stored values load verbatim when valid…
+    localStorage.setItem(KEY, JSON.stringify({ rules: {}, practice: {}, live: { turnStyle: 'p-p-b' } }))
+    expect(createSettingsStore(localStorage).state.live.turnStyle).toBe('p-p-b')
+    // …and fall back to the default when missing or unknown
+    localStorage.setItem(KEY, JSON.stringify({ rules: {}, practice: {}, live: { turnStyle: 'banana' } }))
+    expect(createSettingsStore(localStorage).state.live.turnStyle).toBe('p-b-p')
+    localStorage.setItem(KEY, JSON.stringify({ rules: {}, practice: {} }))
+    expect(createSettingsStore(localStorage).state.live.turnStyle).toBe('p-b-p')
+  })
 })
 
 describe('stats store', () => {

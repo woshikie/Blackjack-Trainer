@@ -137,15 +137,122 @@ body {
   font-weight: 700;
 }
 
-/* Live companion placeholder (full UI lands in an upcoming PR). */
+/* Live companion: table-side card entry and suggestions. */
 .live-companion {
   max-width: 980px;
   margin: 0 auto;
   padding: 24px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
 
-.live-placeholder {
+.turn-style {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.turn-style .style {
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
   color: var(--muted);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+}
+
+.turn-style .style.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #10281e;
+  font-weight: 700;
+}
+
+.table-cards {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+  min-height: 34px;
+}
+
+.table-cards .chip {
+  display: inline-block;
+  min-width: 34px;
+  text-align: center;
+  padding: 6px 8px;
+  border-radius: 8px;
+  font-weight: 700;
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.table-cards .chip.up {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px dashed rgba(255, 255, 255, 0.35);
+}
+
+.live-status {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+}
+
+.live-status .up-row {
+  display: flex;
+  gap: 6px;
+  align-items: baseline;
+}
+
+.suggestion {
+  font-size: 2.1rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  padding: 10px 0;
+}
+
+.suggestion.hit { color: var(--ok); }
+.suggestion.double,
+.suggestion.split { color: var(--accent); }
+.suggestion.surrender { color: var(--danger); }
+.suggestion.stand { color: inherit; }
+.suggestion.waiting { color: var(--muted); font-size: 1.4rem; font-weight: 600; }
+
+.insurance-row {
+  margin: 0;
+  font-weight: 700;
+}
+
+.insurance-row.ok { color: var(--ok); }
+.insurance-row.decline { color: var(--muted); }
+
+.rank-pad {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 8px;
+  max-width: 440px;
+}
+
+.rank-pad .rank {
+  padding: 14px 0;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.pad-note {
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.live-controls {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.live-controls .control:disabled {
+  opacity: 0.4;
+  cursor: default;
 }
 
 nav {
