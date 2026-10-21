@@ -19,6 +19,15 @@ Tapping the ranks that have appeared on the table. Rank-only: tens, jacks, queen
 **Turn Style**:
 The card-entry order, matching the table's deal rhythm: Player→Banker→Player (round-robin, as dealt) or Player→Player→Banker (player cards first). Entry order only; it never changes the strategy.
 
+**Active Hand**:
+The split hand currently awaiting a decision in the Live Companion. Hands play left to right; earlier hands are finished, later hands hold only their split card.
+
+**Split Now**:
+The action button shown when the chart says split for the active hand. It spawns a sub-hand from the pair, capped by the table's max hands; undo never un-splits (New round recovers).
+
+**Round Over (live)**:
+The state after every hand has acted — the bank plays out, the count log persists, and New round starts the next deal.
+
 ### Practice
 
 **Practice Session**:

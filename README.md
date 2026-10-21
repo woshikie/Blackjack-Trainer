@@ -9,6 +9,7 @@ A free, offline-first blackjack basic-strategy trainer. Runs entirely in the bro
 - **Basic strategy grading** in three feedback modes: strict (blocks wrong plays until you pick the right one), lenient (flags but executes), and silent (tallies mistakes for review).
 - **Hi-Lo counting overlay** (pluggable `CountSystem`; automatically disabled under a CSM). Insurance grading follows the Illustrious-18 style index (take at TC ≥ +3 when counting).
 - **Configurable rules**: decks (1/2/4+), S17/H17, peek vs ENHC, DAS, double ranges, split/aces rules, surrender, penetration, CSM, table limits.
+- **Live Companion**: a table-side advisor for real games. Tap ranks as cards land (rank-only — T covers J/Q/K), pick a deal rhythm (round-robin or player-cards-first), and get a big basic-strategy suggestion per hand, insurance / even-money advice against an ace, full split tracking up to the table's max hands, and a Hi-Lo count row over everything entered. No grading, no bankroll.
 
 ## Quick start
 

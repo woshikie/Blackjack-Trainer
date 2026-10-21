@@ -226,6 +226,58 @@ body {
 .insurance-row.ok { color: var(--ok); }
 .insurance-row.decline { color: var(--muted); }
 
+.live-count {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
+.split-now {
+  align-self: flex-start;
+  background: var(--accent);
+  color: #10281e;
+  font-weight: 700;
+  padding: 10px 18px;
+  border-radius: 10px;
+  font-size: 1rem;
+}
+
+.hand-strip {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.hand-strip .hand {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  padding: 4px 8px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+}
+
+.hand-strip .hand.active {
+  border-color: var(--accent);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.hand-strip .hand-label {
+  min-width: 24px;
+  font-size: 0.8rem;
+}
+
+.hand-strip .chip.mini {
+  min-width: 26px;
+  padding: 3px 6px;
+  font-size: 0.85rem;
+}
+
+.hand-strip .chip.ghost {
+  opacity: 0.4;
+  border: 1px dashed rgba(255, 255, 255, 0.35);
+}
+
 .rank-pad {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
