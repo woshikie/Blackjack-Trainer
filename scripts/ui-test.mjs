@@ -59,6 +59,17 @@ try {
     if (!liveShown) fail(`${label}: Live view not shown after tapping Live`)
     if (!practiceChromeHidden) fail(`${label}: practice chrome still visible in live mode`)
 
+    // Tap targets: rank-pad keys are the table-side input surface and must
+    // stay big enough to hit (48px ≈ the smallest reliable touch target).
+    const tooSmall = await page.evaluate(() => {
+      const MIN = 48
+      return [...document.querySelectorAll('.rank-pad .rank')]
+        .map((el) => el.getBoundingClientRect())
+        .filter((r) => r.width < MIN || r.height < MIN)
+        .length
+    })
+    if (tooSmall > 0) fail(`${label}: ${tooSmall} rank key(s) under 48px`)
+
     // …in live mode (no bank controls) the topbar is at its most cramped:
     // the title must never paint over the switch
     const overlap = await page.evaluate(() => {
