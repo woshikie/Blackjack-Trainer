@@ -10,15 +10,35 @@ const props = defineProps<{ game: GameStore; settings: SettingsStore }>()
 const game = props.game
 const snapshot = game.snapshot
 const pendingBet = game.pendingBet
+const lastBet = game.lastBet
 const availableActions = game.availableActions
 const needsTopUp = game.needsTopUp
 
-const SHORTCUTS: Partial<Record<Action, string>> = {
-  hit: 'H',
-  stand: 'S',
-  double: 'D',
-  split: 'P',
-  surrender: 'X',
+/** Keyboard letter for each action; only shown when the letter appears in the word. */
+const KEY_LETTERS: Partial<Record<Action, string>> = {
+  hit: 'h',
+  stand: 's',
+  double: 'd',
+  split: 'p',
+}
+
+interface LabelParts {
+  before: string
+  letter: string
+  after: string
+}
+
+function labelParts(action: Action): LabelParts | null {
+  const letter = KEY_LETTERS[action]
+  const label = ACTION_LABELS[action]
+  if (!letter) return null
+  const index = label.toLowerCase().indexOf(letter)
+  if (index < 0) return null
+  return {
+    before: label.slice(0, index),
+    letter: label[index]!,
+    after: label.slice(index + 1),
+  }
 }
 
 const AUTO_LABEL: Record<Exclude<AutoDeal, 'off'>, string> = {
@@ -38,7 +58,7 @@ const AUTO_LABEL: Record<Exclude<AutoDeal, 'off'>, string> = {
       <template v-else>
         <div class="bet-row">
           <span class="bet-amount">Bet: ${{ pendingBet }}</span>
-          <button class="secondary" @click="game.rebet()">Rebet ${{ settings.state.practice.defaultBet }}</button>
+          <button class="secondary" @click="game.rebet()">Rebet ${{ lastBet }}</button>
         </div>
         <ChipTray
           :denominations="settings.state.practice.chipDenominations"
@@ -48,7 +68,7 @@ const AUTO_LABEL: Record<Exclude<AutoDeal, 'off'>, string> = {
           @clear="game.clearBet"
         />
         <button class="primary deal" :disabled="!game.betLegal(pendingBet)" @click="game.startRound(pendingBet)">
-          Deal (Space)
+          Deal
         </button>
       </template>
     </template>
@@ -56,8 +76,8 @@ const AUTO_LABEL: Record<Exclude<AutoDeal, 'off'>, string> = {
     <template v-else-if="snapshot.phase === 'insurance'">
       <div class="prompt">
         {{ snapshot.evenMoney ? 'Even money?' : 'Insurance?' }}
-        <button class="primary" @click="game.resolveInsurance(true)">Take (Y)</button>
-        <button class="secondary" @click="game.resolveInsurance(false)">Decline (N)</button>
+        <button class="primary" @click="game.resolveInsurance(true)">Take</button>
+        <button class="secondary" @click="game.resolveInsurance(false)">Decline</button>
       </div>
     </template>
 
@@ -69,7 +89,10 @@ const AUTO_LABEL: Record<Exclude<AutoDeal, 'off'>, string> = {
           class="primary"
           @click="game.playerDecide(action)"
         >
-          {{ ACTION_LABELS[action] }}<small v-if="SHORTCUTS[action]"> {{ SHORTCUTS[action] }}</small>
+          <template v-if="labelParts(action)">
+            <span>{{ labelParts(action)!.before }}</span><span class="key-hint">{{ labelParts(action)!.letter }}</span><span>{{ labelParts(action)!.after }}</span>
+          </template>
+          <template v-else>{{ ACTION_LABELS[action] }}</template>
         </button>
       </div>
     </template>
@@ -86,7 +109,8 @@ const AUTO_LABEL: Record<Exclude<AutoDeal, 'off'>, string> = {
             · next in {{ AUTO_DEAL_DELAY[settings.state.practice.autoDeal] / 1000 }}s ({{ AUTO_LABEL[settings.state.practice.autoDeal] }})
           </template>
         </span>
-        <button class="primary" @click="game.nextHand()">Next hand (Space)</button>
+        <button class="primary" @click="game.nextHand()">Next hand</button>
+        <button class="secondary" @click="game.stopPlaying()">Stop</button>
       </div>
     </template>
   </div>

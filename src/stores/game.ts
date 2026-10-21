@@ -39,6 +39,8 @@ export function createGameStore(settings: SettingsStore, stats: StatsStore, engi
   const snapshot = ref<GameSnapshot>(engine.snapshot())
   const notice = ref<Notice>(null)
   const pendingBet = ref(0)
+  // The bet to repeat: seeded from the settings' default bet, then follows the player.
+  const lastBet = ref(settings.state.practice.defaultBet)
   const countRevealed = ref(false)
   let autoTimer: ReturnType<typeof setTimeout> | null = null
 
@@ -74,8 +76,11 @@ export function createGameStore(settings: SettingsStore, stats: StatsStore, engi
     syncEngine()
     engine.placeBet(bet)
     engine.deal()
+    lastBet.value = bet
     notice.value = null
-    refresh()
+    // afterChange (not just refresh): a natural or dealer blackjack settles
+    // during deal(), and that outcome must still schedule the auto-deal.
+    afterChange()
   }
 
   function grade(correct: boolean, spot: string, correctLabel: string): void {
@@ -148,20 +153,39 @@ export function createGameStore(settings: SettingsStore, stats: StatsStore, engi
     // every transition out of the settled phase cancels the timer first,
     // so the callback only ever fires on a settled round
     stats.recordHand()
-    const bet = settings.state.practice.defaultBet
-    if (betLegal(bet)) {
+    if (betLegal(lastBet.value)) {
       engine.nextRound()
-      startRound(bet)
+      startRound(lastBet.value)
     }
   }
 
+  function toBetting(): void {
+    pendingBet.value = lastBet.value
+    engine.nextRound()
+    notice.value = null
+    refresh()
+  }
+
+  /** Leave the settled round and deal the next one at the last bet. */
   function nextHand(): void {
     cancelAuto()
     if (snapshot.value.phase !== 'settled') return
     stats.recordHand()
-    engine.nextRound()
-    notice.value = null
-    refresh()
+    if (betLegal(lastBet.value)) {
+      engine.nextRound()
+      startRound(lastBet.value)
+    } else {
+      // cannot afford the repeat: fall back to the betting screen
+      toBetting()
+    }
+  }
+
+  /** Cancel the pending auto-deal and return to the betting screen. */
+  function stopPlaying(): void {
+    cancelAuto()
+    if (snapshot.value.phase !== 'settled') return
+    stats.recordHand()
+    toBetting()
   }
 
   function addChip(value: number): void {
@@ -173,7 +197,7 @@ export function createGameStore(settings: SettingsStore, stats: StatsStore, engi
   }
 
   function rebet(): void {
-    pendingBet.value = settings.state.practice.defaultBet
+    pendingBet.value = lastBet.value
   }
 
   function topUp(): void {
@@ -185,6 +209,7 @@ export function createGameStore(settings: SettingsStore, stats: StatsStore, engi
     cancelAuto()
     engine = makeEngine()
     pendingBet.value = 0
+    lastBet.value = settings.state.practice.defaultBet
     notice.value = null
     refresh()
   }
@@ -213,6 +238,7 @@ export function createGameStore(settings: SettingsStore, stats: StatsStore, engi
     snapshot,
     notice,
     pendingBet,
+    lastBet,
     countRevealed,
     availableActions,
     activeHand,
@@ -223,6 +249,7 @@ export function createGameStore(settings: SettingsStore, stats: StatsStore, engi
     playerDecide,
     resolveInsurance,
     nextHand,
+    stopPlaying,
     addChip,
     clearBet,
     rebet,

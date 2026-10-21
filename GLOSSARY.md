@@ -52,10 +52,20 @@ The practice money balance for a session. Resets at session start by default.
 The bet composer: tap configurable chip denominations to build the next wager.
 
 **Default Bet**:
-The per-hand wager the Rebet button places.
+The per-session starting wager configured in settings; seeds the Last Bet for the first hand only.
+
+**Last Bet**:
+The wager most recently placed. Drives the hand loop: the Rebet button places it, auto-deal repeats it, and "Next hand" deals with it. Falls back to the betting screen (bet pre-filled) when unaffordable.
+_Avoid_: default bet (for repeats), current bet
 
 **Rebet**:
-One-tap placement of the Default Bet.
+One-tap placement of the Last Bet.
+
+**Stop**:
+The control at a settled hand that cancels the pending auto-deal and returns to the betting screen; never aborts a hand in progress.
+
+**Next Hand**:
+The control at a settled hand that deals the following round immediately at the Last Bet.
 
 ### Table rules (configurable knobs)
 

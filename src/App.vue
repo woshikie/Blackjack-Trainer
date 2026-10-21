@@ -83,7 +83,11 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
   <div class="app">
     <header class="topbar">
       <h1>Blackjack Trainer</h1>
-      <div class="bankroll" :class="{ low: needsTopUp }">Bankroll ${{ snapshot.bankroll }}</div>
+      <div class="bank-controls">
+        <div class="bankroll" :class="{ low: needsTopUp }">Bankroll ${{ snapshot.bankroll }}</div>
+        <button class="link" @click="game.topUp()">Reset bank</button>
+        <button class="link" @click="game.resetSession()">New session</button>
+      </div>
       <nav>
         <button class="icon" title="Settings" @click="toggleSheet('settings')">⚙</button>
         <button class="icon" title="Stats" @click="toggleSheet('stats')">📊</button>

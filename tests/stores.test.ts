@@ -309,6 +309,34 @@ describe('game store betting helpers', () => {
     expect(game.pendingBet.value).toBe(25)
   })
 
+  it('rebets the last played bet, not the configured default', () => {
+    const { game: g2 } = makeStores([c('T'), c('6'), c('8'), c('T'), c('8')])
+    g2.startRound(40)
+    g2.playerDecide('stand')
+    g2.stopPlaying()
+    expect(g2.snapshot.value.phase).toBe('betting')
+    g2.clearBet()
+    g2.rebet()
+    expect(g2.pendingBet.value).toBe(40)
+  })
+
+  it('reseeds the last bet from the default bet on a new session', () => {
+    const { game: g2 } = makeStores([c('T'), c('T'), c('6'), c('5')])
+    g2.startRound(40)
+    g2.playerDecide('surrender')
+    g2.resetSession()
+    g2.rebet()
+    expect(g2.pendingBet.value).toBe(25)
+  })
+
+  it('leaves the betting phase alone when stop is pressed outside a settled round', () => {
+    const { game: g2 } = makeStores([])
+    g2.addChip(25)
+    g2.stopPlaying()
+    expect(g2.snapshot.value.phase).toBe('betting')
+    expect(g2.pendingBet.value).toBe(25)
+  })
+
   it('exposes actions only during the player phase', () => {
     expect(game.availableActions.value).toEqual([])
     expect(game.activeHand.value).toBeNull()
@@ -352,7 +380,7 @@ describe('game store betting helpers', () => {
     const { settings, game } = makeStores([c('T'), c('6'), c('8'), c('T'), c('8')])
     game.startRound(BET)
     game.playerDecide('stand')
-    game.nextHand()
+    game.stopPlaying()
     settings.updateRules({ decks: 2 })
     game.startRound(BET)
     // fresh 2-deck shoe proves the rebuild (the preset shoe had 1 card left)
@@ -364,7 +392,7 @@ describe('game store betting helpers', () => {
     expect(game.snapshot.value.count).toBeNull()
     game.startRound(BET)
     game.playerDecide('stand')
-    game.nextHand()
+    game.stopPlaying()
     settings.updatePractice({ counting: true })
     game.startRound(BET)
     expect(game.snapshot.value.remaining).toBe(312 - 4)
@@ -407,7 +435,7 @@ describe('game store auto-deal', () => {
     return { settings, stats, game }
   }
 
-  it('starts the next round automatically after the configured delay', () => {
+  it('starts the next round automatically at the last bet after the configured delay', () => {
     const { stats, game } = fastStores([c('T'), c('6'), c('8'), c('T'), c('8')])
     game.startRound(BET)
     game.playerDecide('stand')
@@ -416,21 +444,50 @@ describe('game store auto-deal', () => {
     vi.advanceTimersByTime(600)
     expect(stats.stats.value.hands).toBe(1)
     expect(game.snapshot.value.phase).toBe('player')
-    expect(game.snapshot.value.bankroll).toBe(START_BANKROLL - BET + 2 * BET - 25)
+    // 1000 - 10 bet + 20 win, then the auto deal repeats the last bet (10), not the default (25)
+    expect(game.snapshot.value.bankroll).toBe(START_BANKROLL)
   })
 
-  it('is canceled by a manual next hand and inert in the betting phase', () => {
+  it('deals the next round automatically when a player natural settles at deal', () => {
+    // first 4 cards settle round 1 at deal (A+K natural); the rest deal round 2
+    const { stats, game } = fastStores([c('A'), c('5'), c('K'), c('T'), c('T'), c('6'), c('8'), c('T')])
+    game.startRound(BET)
+    // the natural settles during deal(); no player decision ever happens
+    expect(game.snapshot.value.phase).toBe('settled')
+    expect(stats.stats.value.hands).toBe(0)
+    expect(game.snapshot.value.bankroll).toBe(START_BANKROLL - BET + 25)
+    vi.advanceTimersByTime(600)
+    expect(stats.stats.value.hands).toBe(1)
+    expect(game.snapshot.value.phase).toBe('player')
+    expect(game.snapshot.value.roundNumber).toBe(2)
+    expect(game.snapshot.value.bankroll).toBe(START_BANKROLL - BET + 25 - BET)
+  })
+
+  it('is stopped by the stop button, which returns to betting, and is then inert', () => {
     const { game } = fastStores([c('T'), c('6'), c('8'), c('T'), c('8')])
     game.startRound(BET)
     game.playerDecide('stand')
-    game.nextHand()
+    game.stopPlaying()
     expect(game.snapshot.value.phase).toBe('betting')
+    expect(game.pendingBet.value).toBe(BET)
     game.nextHand()
     vi.advanceTimersByTime(2500)
     expect(game.snapshot.value.phase).toBe('betting')
+    expect(game.pendingBet.value).toBe(BET)
   })
 
-  it('leaves the round pending when the default bet is not affordable', () => {
+  it('deals the next hand manually at the last bet', () => {
+    const { stats, game } = fastStores([c('T'), c('6'), c('8'), c('T'), c('8')])
+    game.startRound(BET)
+    game.playerDecide('stand')
+    game.nextHand()
+    expect(game.snapshot.value.phase).toBe('player')
+    expect(game.snapshot.value.roundNumber).toBe(2)
+    expect(stats.stats.value.hands).toBe(1)
+    expect(game.snapshot.value.bankroll).toBe(START_BANKROLL)
+  })
+
+  it('leaves the round pending when the last bet is not affordable', () => {
     const { stats, game } = fastStores([c('T'), c('T'), c('6'), c('T')])
     game.startRound(1000)
     game.playerDecide('stand')
@@ -438,6 +495,18 @@ describe('game store auto-deal', () => {
     vi.advanceTimersByTime(600)
     expect(game.snapshot.value.phase).toBe('settled')
     expect(stats.stats.value.hands).toBe(1)
+  })
+
+  it('falls back to the betting screen when the last bet is unaffordable', () => {
+    const { game } = fastStores([c('T'), c('T'), c('6'), c('T')])
+    game.startRound(1000)
+    game.playerDecide('stand')
+    game.nextHand()
+    const sn = game.snapshot.value
+    expect(sn.phase).toBe('betting')
+    expect(sn.bankroll).toBe(0)
+    expect(game.needsTopUp.value).toBe(true)
+    expect(game.pendingBet.value).toBe(1000)
   })
 
   it('does not schedule anything when auto-deal is off', () => {
