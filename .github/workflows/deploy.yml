@@ -29,6 +29,9 @@ jobs:
       - run: npx vue-tsc --noEmit
       - run: npx vitest run --coverage
       - run: npm run build
+      # UI gate: the mode switch must stay tappable at phone widths
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:ui
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
