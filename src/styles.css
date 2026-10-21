@@ -63,18 +63,14 @@ body {
   color: var(--danger);
 }
 
-/* Keyboard hints: underline-in-word, fine pointers only (hidden on touch). */
-.key-hint {
-  display: none;
-  text-decoration: underline;
-  text-decoration-color: var(--accent);
-  text-decoration-thickness: 2px;
-  text-underline-offset: 3px;
-}
-
+/* Keyboard hints: letter always visible (plain on touch); the underline
+   shows on fine pointers only. */
 @media (hover: hover) and (pointer: fine) {
   .key-hint {
-    display: inline;
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
   }
 }
 
