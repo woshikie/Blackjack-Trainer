@@ -337,6 +337,19 @@ body {
   }
 }
 
+/* Thumb-sized keys on phones: 3 columns instead of 5 — a 375px screen
+   cannot offer wider keys otherwise. The ace drops to a full-width
+   bottom key, an easy "obvious" target to end a tap sequence. */
+@media (max-width: 480px) {
+  .rank-pad {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .rank-pad .rank:last-child {
+    grid-column: 1 / -1;
+  }
+}
+
 .live-controls {
   display: flex;
   gap: 10px;
