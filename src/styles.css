@@ -166,9 +166,9 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.2);
   background: transparent;
   color: var(--muted);
-  padding: 6px 12px;
+  padding: 10px 16px;
   border-radius: 999px;
-  font-size: 0.85rem;
+  font-size: 0.95rem;
 }
 
 .turn-style .style.on {
@@ -246,9 +246,9 @@ body {
   background: var(--accent);
   color: #10281e;
   font-weight: 700;
-  padding: 10px 18px;
+  padding: 14px 22px;
   border-radius: 10px;
-  font-size: 1rem;
+  font-size: 1.1rem;
 }
 
 .hand-strip {
@@ -287,17 +287,33 @@ body {
   border: 1px dashed rgba(255, 255, 255, 0.35);
 }
 
+/* Big tap targets: this pad is tapped at a live table, often while
+   standing — mis-taps are far worse than a chunkier look. */
 .rank-pad {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 8px;
+  gap: 10px;
   max-width: 440px;
 }
 
 .rank-pad .rank {
-  padding: 14px 0;
-  font-size: 1.15rem;
+  padding: 20px 0;
+  font-size: 1.3rem;
   font-weight: 700;
+}
+
+.rank-pad .rank:active,
+.split-now:active,
+.live-controls .control:active,
+.turn-style .style:active {
+  transform: scale(0.96);
+}
+
+.rank-pad .rank,
+.split-now,
+.live-controls .control,
+.turn-style .style {
+  transition: transform 0.06s ease;
 }
 
 .pad-note {
@@ -305,10 +321,31 @@ body {
   font-size: 0.85rem;
 }
 
+/* Very narrow phones: reclaim side padding so the pad keys stay ≥ 48px. */
+@media (max-width: 360px) {
+  .app {
+    padding-left: 8px;
+    padding-right: 8px;
+  }
+
+  .live-companion {
+    padding: 20px 10px;
+  }
+
+  .rank-pad {
+    gap: 8px;
+  }
+}
+
 .live-controls {
   display: flex;
-  gap: 8px;
+  gap: 10px;
   flex-wrap: wrap;
+}
+
+.live-controls .control {
+  padding: 12px 20px;
+  font-size: 1.05rem;
 }
 
 .live-controls .control:disabled {
@@ -329,6 +366,12 @@ button {
   padding: 10px 18px;
   background: rgba(255, 255, 255, 0.08);
   color: var(--text);
+  /* Touch hygiene: no double-tap-zoom delay, no text selection/callout
+     when a tap lands slightly off a target. */
+  touch-action: manipulation;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
 }
 
 button:disabled {
