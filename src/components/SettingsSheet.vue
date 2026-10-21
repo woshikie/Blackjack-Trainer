@@ -6,7 +6,7 @@ const props = defineProps<{ settings: SettingsStore; onClose: () => void }>()
 const settings = props.settings
 const state = settings.state
 
-const FEEDBACK_MODES: FeedbackMode[] = ['strict', 'lenient', 'silent']
+const FEEDBACK_MODES: FeedbackMode[] = ['strict', 'guide', 'lenient', 'silent']
 const AUTO_MODES: AutoDeal[] = ['off', 'slow', 'normal', 'fast']
 const DECK_OPTIONS: DeckCount[] = [1, 2, 4, 6, 8]
 const DOUBLE_OPTIONS: DoubleRule[] = ['any', '9-11', '10-11']
@@ -96,7 +96,7 @@ function onDenominationsChange(event: Event): void {
           <option v-for="mode in AUTO_MODES" :key="mode" :value="mode">{{ mode }}</option>
         </select>
       </label>
-      <label>Default bet (Rebet)
+      <label>Default bet (first hand)
         <input type="number" :min="1" :value="state.practice.defaultBet" @change="settings.updatePractice({ defaultBet: Math.max(1, Number(($event.target as HTMLInputElement).value) || 1) })" />
       </label>
       <label>Chip denominations (comma separated)
@@ -109,6 +109,14 @@ function onDenominationsChange(event: Event): void {
       </label>
       <label :class="{ disabled: !state.practice.counting || state.rules.csm }">
         <input v-model="state.practice.alwaysShowCount" type="checkbox" :disabled="!state.practice.counting || state.rules.csm" /> Always show count
+      </label>
+      <label>
+        <input v-model="state.practice.skipInsurance" type="checkbox" /> Skip insurance offers
+        <small>Auto-declines insurance and even money without grading</small>
+      </label>
+      <label>
+        <input v-model="state.practice.skipSurrender" type="checkbox" /> Skip surrender
+        <small>Surrender is not offered or graded; play the fallback move</small>
       </label>
     </div>
 

@@ -6,6 +6,7 @@ import type { GameSnapshot } from '../domain/engine/game'
 import { decisionSpot } from '../domain/stats'
 import type { Action, DecisionContext } from '../domain/strategy/correctPlay'
 import { correctPlay, insuranceAdvice } from '../domain/strategy/correctPlay'
+import type { Rules } from '../domain/rules'
 import type { AutoDeal, SettingsStore } from './settings'
 import type { StatsStore } from './stats'
 
@@ -89,7 +90,9 @@ export function createGameStore(settings: SettingsStore, stats: StatsStore, engi
       notice.value = null
       return
     }
-    if (settings.state.practice.feedbackMode !== 'silent') {
+    const mode = settings.state.practice.feedbackMode
+    // silent counts quietly; guide already surfaces the correct play via highlights
+    if (mode !== 'silent' && mode !== 'guide') {
       notice.value = { kind: 'mistake', text: `Correct play: ${correctLabel}` }
     }
   }
@@ -98,12 +101,17 @@ export function createGameStore(settings: SettingsStore, stats: StatsStore, engi
     return settings.state.practice.feedbackMode === 'strict' && !correct
   }
 
-  function playerDecide(action: Action): void {
-    cancelAuto()
-    if (snapshot.value.phase !== 'player') return
+  /** Practice rules: the skip-surrender option removes surrender from grading too. */
+  function practiceRules(): Rules {
+    const rules = settings.state.rules
+    return settings.state.practice.skipSurrender ? { ...rules, lateSurrender: false } : rules
+  }
+
+  /** Decision context of the hand the player currently acts on. */
+  function activeContext(): DecisionContext {
     const hand = engine.hands[engine.activeIndex]!
     const up = engine.dealerCards[0]!
-    const context: DecisionContext = {
+    return {
       cards: hand.cards,
       dealerUp: up,
       postSplit: hand.fromSplit,
@@ -111,9 +119,24 @@ export function createGameStore(settings: SettingsStore, stats: StatsStore, engi
       numHands: engine.hands.length,
       fundsForDouble: engine.bankroll >= hand.bet,
     }
-    const correct = correctPlay(context, settings.state.rules)
+  }
+
+  type Guide = Action | 'take' | 'decline'
+  const guide = computed<Guide | null>(() => {
+    if (snapshot.value.phase === 'insurance') {
+      const trueCount = snapshot.value.count?.trueCount ?? 0
+      return insuranceAdvice(settings.state.practice.counting, trueCount).take ? 'take' : 'decline'
+    }
+    if (snapshot.value.phase !== 'player') return null
+    return correctPlay(activeContext(), practiceRules())
+  })
+
+  function playerDecide(action: Action): void {
+    cancelAuto()
+    if (snapshot.value.phase !== 'player') return
+    const correct = correctPlay(activeContext(), practiceRules())
     const isCorrect = action === correct
-    grade(isCorrect, decisionSpot(hand.cards, up), ACTION_LABELS[correct])
+    grade(isCorrect, decisionSpot(engine.hands[engine.activeIndex]!.cards, engine.dealerCards[0]!), ACTION_LABELS[correct])
     if (blockedStrict(isCorrect)) {
       refresh()
       return
@@ -137,6 +160,11 @@ export function createGameStore(settings: SettingsStore, stats: StatsStore, engi
 
   function afterChange(): void {
     refresh()
+    // the "skip insurance" practice option auto-declines without grading
+    if (snapshot.value.phase === 'insurance' && settings.state.practice.skipInsurance) {
+      engine.resolveInsurance(false)
+      refresh()
+    }
     maybeAutoDeal()
   }
 
@@ -214,9 +242,11 @@ export function createGameStore(settings: SettingsStore, stats: StatsStore, engi
     refresh()
   }
 
-  const availableActions = computed<Action[]>(() =>
-    snapshot.value.phase === 'player' ? engine.availableActions() : [],
-  )
+  const availableActions = computed<Action[]>(() => {
+    if (snapshot.value.phase !== 'player') return []
+    const all = engine.availableActions()
+    return settings.state.practice.skipSurrender ? all.filter((action) => action !== 'surrender') : all
+  })
 
   const activeHand = computed(() => {
     const state = snapshot.value
@@ -241,6 +271,7 @@ export function createGameStore(settings: SettingsStore, stats: StatsStore, engi
     lastBet,
     countRevealed,
     availableActions,
+    guide,
     activeHand,
     countVisible,
     needsTopUp,

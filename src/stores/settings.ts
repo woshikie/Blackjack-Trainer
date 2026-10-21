@@ -2,7 +2,7 @@ import { reactive, watch } from 'vue'
 import { DEFAULT_RULES, normalizeRules } from '../domain/rules'
 import type { Rules } from '../domain/rules'
 
-export type FeedbackMode = 'strict' | 'lenient' | 'silent'
+export type FeedbackMode = 'strict' | 'guide' | 'lenient' | 'silent'
 export type AutoDeal = 'off' | 'slow' | 'normal' | 'fast'
 
 export interface PracticeSettings {
@@ -12,6 +12,8 @@ export interface PracticeSettings {
   autoDeal: AutoDeal
   chipDenominations: number[]
   defaultBet: number
+  skipInsurance: boolean
+  skipSurrender: boolean
 }
 
 export interface SettingsState {
@@ -28,6 +30,8 @@ export const DEFAULT_PRACTICE: PracticeSettings = {
   autoDeal: 'normal',
   chipDenominations: [5, 25, 100, 500],
   defaultBet: 25,
+  skipInsurance: false,
+  skipSurrender: false,
 }
 
 function sanitize(raw: unknown): SettingsState | null {

@@ -29,10 +29,14 @@ A graded action that differs from the Correct Play.
 ### Feedback modes
 
 **Feedback Mode**:
-The user-selected rule for what happens on a Mistake. One of: Strict, Lenient, Silent.
+The user-selected rule for what happens on a Mistake. One of: Strict, Guide, Lenient, Silent.
 
 **Strict**:
 A Mistake is flagged instantly with the Correct Play shown and must be redone before the hand continues.
+
+**Guide**:
+A Feedback Mode that highlights the strategy-correct choice (accent ring) live while deciding, on action buttons and insurance prompts. Mistakes are still counted silently — no popup, no blocking.
+_Avoid_: hint box, coach text
 
 **Lenient**:
 A Mistake is flagged instantly but the player's (wrong) action executes and the hand plays out.
@@ -66,6 +70,12 @@ The control at a settled hand that cancels the pending auto-deal and returns to 
 
 **Next Hand**:
 The control at a settled hand that deals the following round immediately at the Last Bet.
+
+**Skip Insurance**:
+A practice toggle that auto-declines insurance and even money offers without grading them; the prompt is never shown.
+
+**Skip Surrender**:
+A practice toggle that removes Surrender from the offered actions and from grading; the strategy is quoted as the no-surrender fallback play.
 
 ### Table rules (configurable knobs)
 

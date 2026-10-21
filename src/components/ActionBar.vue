@@ -8,6 +8,7 @@ import ChipTray from './ChipTray.vue'
 
 const props = defineProps<{ game: GameStore; settings: SettingsStore }>()
 const game = props.game
+const settings = props.settings
 const snapshot = game.snapshot
 const pendingBet = game.pendingBet
 const lastBet = game.lastBet
@@ -46,6 +47,12 @@ const AUTO_LABEL: Record<Exclude<AutoDeal, 'off'>, string> = {
   normal: 'normal',
   fast: 'fast',
 }
+
+/** True when Guide mode is on and this choice is the highlighted correct play. */
+function isGuided(choice: string): boolean {
+  if (settings.state.practice.feedbackMode !== 'guide') return false
+  return game.guide.value === choice
+}
 </script>
 
 <template>
@@ -76,8 +83,16 @@ const AUTO_LABEL: Record<Exclude<AutoDeal, 'off'>, string> = {
     <template v-else-if="snapshot.phase === 'insurance'">
       <div class="prompt">
         {{ snapshot.evenMoney ? 'Even money?' : 'Insurance?' }}
-        <button class="primary" @click="game.resolveInsurance(true)">Take</button>
-        <button class="secondary" @click="game.resolveInsurance(false)">Decline</button>
+        <button
+          class="primary"
+          :class="{ guided: isGuided('take') }"
+          @click="game.resolveInsurance(true)"
+        >Take</button>
+        <button
+          class="secondary"
+          :class="{ guided: isGuided('decline') }"
+          @click="game.resolveInsurance(false)"
+        >Decline</button>
       </div>
     </template>
 
@@ -87,6 +102,7 @@ const AUTO_LABEL: Record<Exclude<AutoDeal, 'off'>, string> = {
           v-for="action in availableActions"
           :key="action"
           class="primary"
+          :class="{ guided: isGuided(action) }"
           @click="game.playerDecide(action)"
         >
           <template v-if="labelParts(action)">
@@ -103,12 +119,15 @@ const AUTO_LABEL: Record<Exclude<AutoDeal, 'off'>, string> = {
 
     <template v-else>
       <div class="prompt settled-row">
-        <span>
-          Hand complete
-          <template v-if="settings.state.practice.autoDeal !== 'off'">
-            · next in {{ AUTO_DEAL_DELAY[settings.state.practice.autoDeal] / 1000 }}s ({{ AUTO_LABEL[settings.state.practice.autoDeal] }})
-          </template>
-        </span>
+        <span>Hand complete</span>
+        <template v-if="settings.state.practice.autoDeal !== 'off'">
+          <span>next in {{ AUTO_DEAL_DELAY[settings.state.practice.autoDeal] / 1000 }}s ({{ AUTO_LABEL[settings.state.practice.autoDeal] }})</span>
+          <div
+            :key="snapshot.roundNumber"
+            class="countdown-bar"
+            :style="{ animationDuration: (AUTO_DEAL_DELAY[settings.state.practice.autoDeal] / 1000) + 's' }"
+          ></div>
+        </template>
         <button class="primary" @click="game.nextHand()">Next hand</button>
         <button class="secondary" @click="game.stopPlaying()">Stop</button>
       </div>

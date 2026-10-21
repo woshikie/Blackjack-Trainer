@@ -517,3 +517,95 @@ describe('game store auto-deal', () => {
     expect(game.snapshot.value.phase).toBe('settled')
   })
 })
+
+describe('game store guide mode and skip toggles', () => {
+  it('guide mode highlights the correct play and counts mistakes silently', () => {
+    const settings = createSettingsStore(null)
+    settings.updatePractice({ feedbackMode: 'guide' })
+    const stats = createStatsStore(null)
+    const game = createGameStore(settings, stats, factoryFor(settings.state.rules, [c('T'), c('T'), c('6'), c('5'), c('2'), c('2')]))
+    game.startRound(BET)
+    expect(game.snapshot.value.phase).toBe('player')
+    expect(game.availableActions.value).toContain('surrender')
+    expect(game.guide.value).toBe('surrender')
+    game.playerDecide('hit')
+    // graded silently: no popup, no block, hand continues (16 hits to 18)
+    expect(game.notice.value).toBeNull()
+    expect(stats.stats.value.mistakes).toBe(1)
+    expect(game.guide.value).toBe('stand')
+    game.playerDecide('stand')
+    expect(game.notice.value).toBeNull()
+    expect(stats.stats.value.mistakes).toBe(1)
+  })
+
+  it('hides the highlight outside decision prompts', () => {
+    const { game } = makeStores([])
+    expect(game.guide.value).toBeNull()
+  })
+
+  it('highlights the counting-based insurance advice', () => {
+    const settings = createSettingsStore(null)
+    settings.updatePractice({ feedbackMode: 'guide', counting: true })
+    const stats = createStatsStore(null)
+    // round 1: 13 v 5 stands; the dealt lows (5,5) plus neutral 8/7 tags put
+    // the running count +2. round 2 (no hole yet on A up): 2, A, 2 → running
+    // +3 with 2 cards left → decks-remaining floor 0.5 → true count 6 → take
+    const game = createGameStore(settings, stats, factoryFor(settings.state.rules, [c('5'), c('5'), c('8'), c('7'), c('8'), c('2'), c('A'), c('2'), c('T')], true))
+    game.startRound(BET)
+    game.playerDecide('stand') // hard 13 v 5: the correct play
+    game.nextHand() // deals round 2: A up → insurance prompt
+    expect(game.snapshot.value.phase).toBe('insurance')
+    expect(game.guide.value).toBe('take')
+    game.resolveInsurance(true)
+    expect(stats.stats.value.mistakes).toBe(0)
+  })
+
+  it('shows the decline highlight when counting is off', () => {
+    const settings = createSettingsStore(null)
+    settings.updatePractice({ feedbackMode: 'guide' })
+    const stats = createStatsStore(null)
+    const game = createGameStore(settings, stats, factoryFor(settings.state.rules, [c('5'), c('A'), c('T'), c('8')]))
+    game.startRound(BET)
+    expect(game.snapshot.value.phase).toBe('insurance')
+    expect(game.guide.value).toBe('decline')
+    game.resolveInsurance(false)
+    expect(stats.stats.value.mistakes).toBe(0)
+  })
+
+  it('removes surrender and grades against the fallback when skipping surrender', () => {
+    const settings = createSettingsStore(null)
+    settings.updatePractice({ skipSurrender: true })
+    const stats = createStatsStore(null)
+    const game = createGameStore(settings, stats, factoryFor(settings.state.rules, [c('T'), c('T'), c('6'), c('5'), c('2'), c('2')]))
+    game.startRound(BET)
+    expect(game.availableActions.value).not.toContain('surrender')
+    expect(game.availableActions.value).toContain('hit')
+    expect(game.availableActions.value).toContain('stand')
+    expect(game.guide.value).toBe('hit')
+    game.playerDecide('hit')
+    // burning a card is the correct fallback (16 v T: hit without surrender)
+    expect(stats.stats.value.mistakes).toBe(0)
+    game.playerDecide('stand')
+  })
+
+  it('auto-declines and does not grade skipped insurance', () => {
+    const settings = createSettingsStore(null)
+    settings.updatePractice({ skipInsurance: true })
+    const stats = createStatsStore(null)
+    const game = createGameStore(settings, stats, factoryFor(settings.state.rules, [c('K'), c('A'), c('Q'), c('6')]))
+    game.startRound(BET)
+    // the prompt is never shown; play continues immediately
+    expect(game.snapshot.value.phase).toBe('player')
+    expect(game.snapshot.value.insuranceTaken).toBe(false)
+    expect(stats.stats.value.decisions).toBe(0)
+    game.playerDecide('stand')
+    expect(game.snapshot.value.phase).toBe('settled')
+    expect(game.snapshot.value.hands[0]?.result).toBe('win')
+  })
+
+  it('keeps the insurance prompt when the skip toggle is off', () => {
+    const { game } = makeStores([c('K'), c('A'), c('Q'), c('6')])
+    game.startRound(BET)
+    expect(game.snapshot.value.phase).toBe('insurance')
+  })
+})
