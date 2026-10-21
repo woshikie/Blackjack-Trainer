@@ -97,7 +97,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
     </header>
 
     <CountOverlay :game="game" />
-    <TableFelt :game="game" />
+    <TableFelt :game="game" :settings="settings" />
 
     <div v-if="notice" class="notice" :class="notice.kind">{{ notice.text }}</div>
 

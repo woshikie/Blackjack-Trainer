@@ -5,6 +5,7 @@ import type { AutoDeal } from '../stores/settings'
 import type { GameStore } from '../stores/game'
 import type { SettingsStore } from '../stores/settings'
 import ChipTray from './ChipTray.vue'
+import CountdownDisplay from './CountdownDisplay.vue'
 
 const props = defineProps<{ game: GameStore; settings: SettingsStore }>()
 const game = props.game
@@ -121,9 +122,12 @@ function isGuided(choice: string): boolean {
       <div class="prompt settled-row">
         <span>
           Hand complete
-          <template v-if="settings.state.practice.autoDeal !== 'off'">
-            · next in {{ AUTO_DEAL_DELAY[settings.state.practice.autoDeal] / 1000 }}s ({{ AUTO_LABEL[settings.state.practice.autoDeal] }})
-          </template>
+          <CountdownDisplay
+            v-if="settings.state.practice.autoDeal !== 'off'"
+            :key="snapshot.roundNumber"
+            :delay-ms="AUTO_DEAL_DELAY[settings.state.practice.autoDeal]"
+            :label="AUTO_LABEL[settings.state.practice.autoDeal]"
+          />
         </span>
         <button class="primary" @click="game.nextHand()">Next hand</button>
         <button class="secondary" @click="game.stopPlaying()">Stop</button>
