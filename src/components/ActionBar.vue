@@ -119,17 +119,20 @@ function isGuided(choice: string): boolean {
 
     <template v-else>
       <div class="prompt settled-row">
-        <span>Hand complete</span>
-        <template v-if="settings.state.practice.autoDeal !== 'off'">
-          <span>next in {{ AUTO_DEAL_DELAY[settings.state.practice.autoDeal] / 1000 }}s ({{ AUTO_LABEL[settings.state.practice.autoDeal] }})</span>
-          <div
-            :key="snapshot.roundNumber"
-            class="countdown-bar"
-            :style="{ animationDuration: (AUTO_DEAL_DELAY[settings.state.practice.autoDeal] / 1000) + 's' }"
-          ></div>
-        </template>
+        <span>
+          Hand complete
+          <template v-if="settings.state.practice.autoDeal !== 'off'">
+            · next in {{ AUTO_DEAL_DELAY[settings.state.practice.autoDeal] / 1000 }}s ({{ AUTO_LABEL[settings.state.practice.autoDeal] }})
+          </template>
+        </span>
         <button class="primary" @click="game.nextHand()">Next hand</button>
         <button class="secondary" @click="game.stopPlaying()">Stop</button>
+        <span
+          v-if="settings.state.practice.autoDeal !== 'off'"
+          :key="snapshot.roundNumber"
+          class="countdown-bar"
+          :style="{ animationDuration: (AUTO_DEAL_DELAY[settings.state.practice.autoDeal] / 1000) + 's' }"
+        ></span>
       </div>
     </template>
   </div>

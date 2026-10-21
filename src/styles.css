@@ -81,15 +81,20 @@ body {
   box-shadow: 0 0 14px rgba(232, 182, 76, 0.45);
 }
 
-/* Auto-deal countdown: bar drains linearly over the scheduled delay. */
+/* Auto-deal countdown: a hairline pinned to the bottom edge of the action
+   bar, out of layout flow so the buttons never move. */
 .countdown-bar {
-  height: 4px;
-  border-radius: 2px;
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  height: 3px;
+  border-radius: 0 3px 0 0;
   background: var(--accent);
   width: 100%;
   animation-name: countdown;
   animation-timing-function: linear;
   animation-fill-mode: forwards;
+  pointer-events: none;
 }
 
 @keyframes countdown {
@@ -347,6 +352,7 @@ button.icon {
 }
 
 .action-bar {
+  position: relative;
   padding: 10px 0 4px;
   display: flex;
   flex-direction: column;
