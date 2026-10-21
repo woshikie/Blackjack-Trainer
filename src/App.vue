@@ -10,12 +10,15 @@ import SettingsSheet from './components/SettingsSheet.vue'
 import StatsSheet from './components/StatsSheet.vue'
 import TableFelt from './components/TableFelt.vue'
 import { createGameStore } from './stores/game'
+import { createLiveStore } from './stores/live'
 import { createSettingsStore } from './stores/settings'
 import { createStatsStore } from './stores/stats'
 
 const settings = createSettingsStore()
 const stats = createStatsStore()
 const game = createGameStore(settings, stats)
+// One live session for the app's lifetime: switching modes keeps entered cards.
+const live = createLiveStore(settings)
 
 const { snapshot, notice, needsTopUp } = game
 
@@ -110,7 +113,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
     </header>
 
     <CountOverlay v-if="settings.state.mode === 'practice'" :game="game" />
-    <LiveCompanion v-else />
+    <LiveCompanion v-else :live="live" :settings="settings" />
 
     <template v-if="settings.state.mode === 'practice'">
       <TableFelt :game="game" :settings="settings" />
