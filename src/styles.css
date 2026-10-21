@@ -42,6 +42,8 @@ body {
   display: flex;
   align-items: center;
   gap: 12px;
+  /* Narrow screens: wrap to rows instead of squeezing controls into overlap. */
+  flex-wrap: wrap;
   padding: 10px 0;
 }
 
@@ -49,6 +51,9 @@ body {
   font-size: 1.05rem;
   margin: 0;
   flex: 1;
+  /* never narrower than its own words: narrow screens wrap following
+     controls to the next row instead of painting the title over them */
+  min-width: max-content;
   letter-spacing: 0.04em;
 }
 
@@ -117,6 +122,9 @@ body {
 /* Practice / Live top-level switch. */
 .mode-switch {
   display: flex;
+  /* Tap targets must never collapse: flex-shrink 0 (overflow:hidden would
+     otherwise let the switch be crushed to nothing on narrow screens). */
+  flex-shrink: 0;
   border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 999px;
   overflow: hidden;
@@ -127,8 +135,9 @@ body {
   border-radius: 0;
   background: transparent;
   color: var(--muted);
-  padding: 4px 12px;
+  padding: 6px 14px;
   font-size: 0.85rem;
+  white-space: nowrap;
 }
 
 .mode-switch .mode.on {
