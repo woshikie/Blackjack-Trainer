@@ -184,12 +184,17 @@ body {
   gap: 8px;
   flex-wrap: wrap;
   align-items: center;
-  min-height: 34px;
+  /* Reserve a full chip row: chips render ~40px tall (the practice .chip
+     sizing is escaped above) so entry must not move the pad below. */
+  min-height: 2.6rem;
 }
 
 .table-cards .chip {
   display: inline-block;
   min-width: 34px;
+  /* escape the practice .chip circle sizing below */
+  width: auto;
+  height: auto;
   text-align: center;
   padding: 6px 8px;
   border-radius: 8px;
@@ -206,6 +211,10 @@ body {
   display: flex;
   gap: 18px;
   flex-wrap: wrap;
+  /* Reserve the playing-state rows (bank + hand + next) so the pad
+     below never shifts when the first cards land — wrapped rows on
+     small phones reach ~62px. */
+  min-height: 3.9rem;
 }
 
 .live-status .up-row {
@@ -219,6 +228,9 @@ body {
   font-weight: 800;
   letter-spacing: 0.02em;
   padding: 10px 0;
+  /* Fixed height across the waiting/active sizes — a jumping
+     suggestion would shove the pad mid-tap. */
+  min-height: 3.6rem;
 }
 
 .suggestion.hit { color: var(--ok); }
@@ -240,6 +252,12 @@ body {
   margin: 0;
   font-variant-numeric: tabular-nums;
   color: var(--muted);
+}
+
+/* Reserved two-row slot for the insurance/count lines: they pop in
+   mid-round (dealer ace, counting on) and must not move the pad. */
+.live-meta {
+  min-height: 2.6rem;
 }
 
 .split-now {
@@ -346,8 +364,8 @@ body {
 /* Thumb-sized keys on phones: 3 columns instead of 5. 640px covers
    every phone incl. big Androids (display-size scaling), unfolded
    foldables and landscape split-screen; > 640 (tablets / desktop)
-   keeps the compact pad. The ace drops to a full-width bottom key,
-   an easy "obvious" target to end a tap sequence. */
+   keeps the compact pad. The 10 drops to a full-width bottom key
+   (phone-dial 0 position), an easy "obvious" target. */
 @media (max-width: 640px) {
   .rank-pad {
     grid-template-columns: repeat(3, 1fr);

@@ -70,6 +70,32 @@ try {
     })
     if (tooSmall > 0) fail(`${label}: ${tooSmall} rank key(s) under 48px`)
 
+    // Telephone order: A top-left like 1, 2-9 on their phone positions,
+    // 10 bottom like 0 — thumb muscle memory.
+    const order = await page.evaluate(() =>
+      [...document.querySelectorAll('.rank-pad .rank')].map((el) => el.textContent.trim()),
+    )
+    const want = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10']
+    if (JSON.stringify(order) !== JSON.stringify(want)) {
+      fail(`${label}: rank pad order ${JSON.stringify(order)}, want phone-dial ${JSON.stringify(want)}`)
+    }
+
+    // Pad stability: the pad must not move between the pristine state and
+    // the first tap — a jumping pad lands the second tap on the wrong key.
+    const padTop = await page.evaluate(
+      () => document.querySelector('.rank-pad')?.getBoundingClientRect().top ?? -1,
+    )
+    await page.locator('.rank-pad .rank').first().tap()
+    await page.waitForTimeout(200)
+    const padTopAfter = await page.evaluate(
+      () => document.querySelector('.rank-pad')?.getBoundingClientRect().top ?? -1,
+    )
+    if (Math.abs(padTopAfter - padTop) > 8) {
+      fail(`${label}: rank pad jumped ${(padTopAfter - padTop).toFixed(1)}px after the first tap`)
+    } else {
+      console.log(`${label}: rank pad stable (+${(padTopAfter - padTop).toFixed(1)}px) — ok`)
+    }
+
     // …in live mode (no bank controls) the topbar is at its most cramped:
     // the title must never paint over the switch
     const overlap = await page.evaluate(() => {

@@ -42,6 +42,16 @@ async function forceUpdate(): Promise<void> {
   window.location.reload()
 }
 
+function onEarlySurrender(checked: boolean): void {
+  if (checked) settings.updateRules({ earlySurrender: true, lateSurrender: true })
+  else settings.updateRules({ earlySurrender: false })
+}
+
+function onLateSurrender(checked: boolean): void {
+  if (!checked) settings.updateRules({ lateSurrender: false, earlySurrender: false })
+  else settings.updateRules({ lateSurrender: true })
+}
+
 function onDenominationsChange(event: Event): void {
   const target = event.target as HTMLInputElement
   const parsed = target.value
@@ -103,7 +113,11 @@ function onDenominationsChange(event: Event): void {
         <small>Unchecked = European no hole card; surrender is not offered</small>
       </label>
       <label :class="{ disabled: !state.rules.peek }">
-        <input v-model="state.rules.lateSurrender" type="checkbox" :disabled="!state.rules.peek" /> Late surrender
+        <input :checked="state.rules.lateSurrender" type="checkbox" :disabled="!state.rules.peek" @change="onLateSurrender(($event.target as HTMLInputElement).checked)" /> Late surrender
+      </label>
+      <label :class="{ disabled: !state.rules.peek }">
+        <input :checked="state.rules.earlySurrender" type="checkbox" :disabled="!state.rules.peek" @change="onEarlySurrender(($event.target as HTMLInputElement).checked)" /> Early surrender
+        <small>Surrender before the dealer peeks; much wider strategy vs ace and ten</small>
       </label>
       <label>
         <input v-model="state.rules.csm" type="checkbox" /> Continuous shuffling machine (CSM)

@@ -31,7 +31,9 @@ const {
   newShoe,
 } = props.live
 
-const RANK_PAD: readonly Rank[] = ['2', '3', '4', '5', '6', '7', '8', '9', 'T', 'A']
+// Telephone-dial order: A sits where 1 is, 2–9 land on their phone
+// positions, T (10) rides the bottom row like 0 — thumb muscle memory.
+const RANK_PAD: readonly Rank[] = ['A', '2', '3', '4', '5', '6', '7', '8', '9', 'T']
 
 function padLabel(rank: Rank): string {
   return rank === 'T' ? '10' : rank
@@ -138,22 +140,24 @@ const countRow = computed(() => {
       {{ suggestionText }}
     </div>
 
-    <p v-if="insurance" class="insurance-row" :class="insurance.take ? 'ok' : 'decline'">
-      {{ insuranceLabel }}
-    </p>
+    <div class="live-meta">
+      <p v-if="insurance" class="insurance-row" :class="insurance.take ? 'ok' : 'decline'">
+        {{ insuranceLabel }}
+      </p>
 
-    <p v-if="count" class="live-count">{{ countRow }}</p>
-
-    <button v-if="advice?.action === 'split'" class="split-now" @click="splitHand">
-      Split the hand
-    </button>
+      <p v-if="count" class="live-count">{{ countRow }}</p>
+    </div>
 
     <div class="rank-pad">
       <button v-for="rank in RANK_PAD" :key="rank" class="rank" :disabled="roundDone" @click="pick(rank)">
         {{ padLabel(rank) }}
       </button>
     </div>
-    <p class="pad-note muted">T covers J, Q, K — suits never matter.</p>
+    <p class="pad-note muted">A top-left, 10 bottom — phone dial order. T covers J, Q, K.</p>
+
+    <button v-if="advice?.action === 'split'" class="split-now" @click="splitHand">
+      Split the hand
+    </button>
 
     <div class="live-controls">
       <button class="control" :disabled="!canUndo" @click="undo">Undo</button>

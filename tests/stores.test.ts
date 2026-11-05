@@ -102,6 +102,25 @@ describe('settings store', () => {
     expect(store.state.rules.lateSurrender).toBe(true)
   })
 
+  it('implies late surrender when early is on and clears both under ENHC', () => {
+    const store = createSettingsStore(null)
+    store.updateRules({ earlySurrender: true })
+    expect(store.state.rules.earlySurrender).toBe(true)
+    expect(store.state.rules.lateSurrender).toBe(true)
+    // switching late off snaps back on while early is set
+    store.updateRules({ lateSurrender: false })
+    expect(store.state.rules.lateSurrender).toBe(true)
+    // ENHC with early requested clears both (left operand, then right)
+    store.updateRules({ peek: false, lateSurrender: false })
+    expect(store.state.rules.earlySurrender).toBe(false)
+    expect(store.state.rules.lateSurrender).toBe(false)
+    // both off already: the ENHC clear is a no-op
+    store.updateRules({ peek: false })
+    expect(store.state.rules.earlySurrender).toBe(false)
+    store.updateRules({ peek: true })
+    expect(store.state.rules.peek).toBe(true)
+  })
+
   it('resets to defaults', () => {
     const store = createSettingsStore(null)
     store.updateRules({ decks: 1 })
@@ -617,6 +636,17 @@ describe('game store guide mode and skip toggles', () => {
     // burning a card is the correct fallback (16 v T: hit without surrender)
     expect(stats.stats.value.mistakes).toBe(0)
     game.playerDecide('stand')
+  })
+
+  it('removes early surrender too when skipping surrender', () => {
+    const settings = createSettingsStore(null)
+    settings.updatePractice({ skipSurrender: true })
+    settings.updateRules({ earlySurrender: true })
+    const stats = createStatsStore(null)
+    const game = createGameStore(settings, stats, factoryFor(settings.state.rules, [c('T'), c('T'), c('6'), c('5')]))
+    game.startRound(BET)
+    expect(game.availableActions.value).not.toContain('surrender')
+    expect(game.guide.value).toBe('hit')
   })
 
   it('auto-declines and does not grade skipped insurance', () => {

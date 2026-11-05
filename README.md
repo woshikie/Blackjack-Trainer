@@ -33,6 +33,7 @@ npx vitest run --coverage
 Canonical 4–8 deck charts follow standard Vegas multi-deck basic strategy (verified against Wikipedia / Wizard of Odds conventions). The **1- and 2-deck chart families are encoded from the same conventions from memory — flag for independent audit before treating them as canonical.** Notable edges:
 
 - Pair 8,8 vs A surrenders only in H17 4+ deck games (`p8` override).
+- Early surrender (before the peek) uses the Wizard of Odds early table: vs ace, hard 5-7 and 12-17 plus pairs 3/6/7/8 (2s only in H17); vs ten, hard 14-16 and pairs 7/8 — with single-deck T+4 / 9+5 and double-deck T+4 playing out, and single-deck 8,8 vs 10 splitting under DAS.
 - No-DAS pair cells revert to HIT directly (4,4 vs 5 without DAS hits; a plain hard 8 would double).
 - ENHC (no-peek) games block doubles/splits vs T/A (except A,A vs T) and disable surrender.
 - See `docs/adr/0001-strategy-engine-charts-over-simulation.md` and `GLOSSARY.md` for the full model.

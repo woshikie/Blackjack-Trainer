@@ -112,6 +112,17 @@ describe('live store — card entry', () => {
     // ENHC: late surrender disappears, hard 16 falls back to hit
     expect(live.advice.value?.action).toBe('hit')
   })
+
+  it('advises early surrender when the table offers it', () => {
+    const { settings, live } = makeLive()
+    settings.updateRules({ earlySurrender: true })
+    live.pick('9')
+    live.pick('T')
+    live.pick('5')
+    expect(live.activeCards.value).toEqual(['9', '5'])
+    expect(live.dealer.value).toBe('T')
+    expect(live.advice.value?.action).toBe('surrender')
+  })
 })
 
 describe('live store — splits', () => {

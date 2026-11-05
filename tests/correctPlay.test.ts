@@ -317,6 +317,83 @@ describe('correctPlay rule-conditioned variants', () => {
   })
 })
 
+describe('early surrender', () => {
+  function early(partial: Partial<Rules> = {}): Rules {
+    return baseRules({ earlySurrender: true, ...partial })
+  }
+
+  it('surrenders hard 5-7 vs an ace', () => {
+    expect(correctPlay(context([c('3'), c('2')], 'A'), early())).toBe('surrender')
+    expect(correctPlay(context([c('4'), c('2')], 'A'), early())).toBe('surrender')
+    expect(correctPlay(context([c('5'), c('2')], 'A'), early())).toBe('surrender')
+  })
+
+  it('leaves hard 8-11 vs an ace alone', () => {
+    expect(correctPlay(context([c('5'), c('3')], 'A'), early())).toBe('hit')
+    expect(correctPlay(context([c('6'), c('4')], 'A'), early())).toBe('hit')
+    expect(correctPlay(context([c('6'), c('5')], 'A'), early())).toBe('hit')
+    // ...while H17 hard 11 vs ace still doubles
+    expect(correctPlay(context([c('6'), c('5')], 'A'), early({ hitSoft17: true }))).toBe('double')
+  })
+
+  it('surrenders hard 12-17 vs an ace but stands 18+', () => {
+    expect(correctPlay(context([c('T'), c('2')], 'A'), early())).toBe('surrender')
+    expect(correctPlay(context([c('T'), c('7')], 'A'), early())).toBe('surrender')
+    expect(correctPlay(context([c('T'), c('8')], 'A'), early())).toBe('stand')
+  })
+
+  it('surrenders small pairs vs an ace, 2s only in H17', () => {
+    expect(correctPlay(context([c('3'), c('3')], 'A'), early())).toBe('surrender')
+    expect(correctPlay(context([c('6'), c('6')], 'A'), early())).toBe('surrender')
+    expect(correctPlay(context([c('7'), c('7')], 'A'), early())).toBe('surrender')
+    expect(correctPlay(context([c('8'), c('8')], 'A'), early())).toBe('surrender')
+    expect(correctPlay(context([c('2'), c('2')], 'A'), early({ hitSoft17: true }))).toBe('surrender')
+    expect(correctPlay(context([c('2'), c('2')], 'A'), early())).toBe('hit')
+    expect(correctPlay(context([c('9'), c('9')], 'A'), early())).toBe('stand')
+    expect(correctPlay(context([c('8'), c('8')], '6'), early())).toBe('split')
+  })
+
+  it('surrenders hard 14-16 vs a ten with single/double-deck exceptions', () => {
+    const six = early()
+    expect(correctPlay(context([c('9'), c('6')], 'T'), six)).toBe('surrender')
+    expect(correctPlay(context([c('T'), c('6')], 'T'), six)).toBe('surrender')
+    expect(correctPlay(context([c('9'), c('5')], 'T'), six)).toBe('surrender')
+    expect(correctPlay(context([c('7'), c('7')], 'T'), six)).toBe('surrender')
+    expect(correctPlay(context([c('8'), c('8')], 'T'), six)).toBe('surrender')
+    const one = early({ decks: 1 })
+    expect(correctPlay(context([c('T'), c('4')], 'T'), one)).toBe('hit')
+    expect(correctPlay(context([c('9'), c('5')], 'T'), one)).toBe('hit')
+    expect(correctPlay(context([c('K'), c('4')], 'T'), one)).toBe('hit')
+    expect(correctPlay(context([c('7'), c('7')], 'T'), one)).toBe('surrender')
+    expect(correctPlay(context([c('8'), c('8')], 'T'), early({ decks: 1, doubleAfterSplit: false }))).toBe(
+      'surrender',
+    )
+    const two = early({ decks: 2 })
+    expect(correctPlay(context([c('T'), c('4')], 'T'), two)).toBe('hit')
+    expect(correctPlay(context([c('9'), c('5')], 'T'), two)).toBe('surrender')
+    expect(correctPlay(context([c('T'), c('3')], 'T'), six)).toBe('hit')
+    expect(correctPlay(context([c('T'), c('7')], 'T'), six)).toBe('stand')
+  })
+
+  it('leaves the late game alone on other upcards', () => {
+    expect(correctPlay(context([c('T'), c('6')], '9'), early())).toBe('surrender')
+  })
+
+  it('never surrenders soft hands early', () => {
+    expect(correctPlay(context([c('A'), c('7')], 'A'), early())).toBe('hit')
+    expect(correctPlay(context([c('A'), c('8')], 'A'), early())).toBe('stand')
+    expect(correctPlay(context([c('A'), c('6')], 'T'), early())).toBe('hit')
+  })
+
+  it('never surrenders early without a peek, post-split, or with three cards', () => {
+    expect(correctPlay(context([c('T'), c('6')], 'T'), early({ peek: false }))).toBe('hit')
+    expect(correctPlay(context([c('8'), c('8')], 'A'), early({ peek: false }))).toBe('hit')
+    expect(correctPlay(context([c('T'), c('6')], 'T', { postSplit: true }), early())).toBe('hit')
+    expect(correctPlay(context([c('3'), c('3')], 'A', { postSplit: true }), early())).toBe('hit')
+    expect(correctPlay(context([c('5'), c('5'), c('6')], 'A'), early())).toBe('hit')
+  })
+})
+
 describe('insuranceCorrect', () => {
   it('declines insurance without counting', () => {
     expect(insuranceCorrect(false, 10)).toBe(false)

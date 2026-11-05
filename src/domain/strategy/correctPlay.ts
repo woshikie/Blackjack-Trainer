@@ -86,6 +86,56 @@ function pairSurrender(family: DeckFamily, dealerRule: DealerRule, up: Up): bool
   )
 }
 
+/**
+ * Early-surrender pair carve-out (Wizard of Odds): only the ace/ten upcards
+ * differ from late surrender. Pairs whose chart cell is hit/stand still
+ * surrender early (e.g. 7,7 vs T), so the pair block consults the total
+ * matcher before the chart — except single-deck 8,8 vs T with DAS,
+ * which splits.
+ */
+function earlyPairCarveOut(
+  up: Up,
+  pairKey: string,
+  family: DeckFamily,
+  doubleAfterSplit: boolean,
+): boolean {
+  return up === 'T' && pairKey === '8' && family === '1' && doubleAfterSplit
+}
+
+/**
+ * Early-surrender hard totals (Wizard of Odds): vs an ace, hard 5-7 and
+ * 12-17 (plus a pair of 2s under H17); vs a ten, hard 14-16.
+ * Composition exceptions vs a ten: single-deck T+4 and 9+5 play out,
+ * double-deck T+4 plays out. Soft hands never surrender.
+ */
+function earlySurrenderMatches(
+  family: DeckFamily,
+  dealerRule: DealerRule,
+  up: Up,
+  total: number,
+  soft: boolean,
+  cards: readonly Card[],
+  pairKey: string | null,
+): boolean {
+  if (soft) return false
+  if (up === 'A') {
+    if (total >= 5 && total <= 7) return true
+    if (total >= 12 && total <= 17) return true
+    return pairKey === '2' && dealerRule === 'H17'
+  }
+  if (up === 'T') {
+    if (total === 15 || total === 16) return true
+    if (total !== 14) return false
+    const ranks = cards.map((card) => card.rank)
+    const tenFour = ranks.some((rank) => rankValue(rank) === 10) && ranks.includes('4')
+    const nineFive = ranks.includes('9') && ranks.includes('5')
+    if (family === '1' && (tenFour || nineFive)) return false
+    if (family === '2' && tenFour) return false
+    return true
+  }
+  return false
+}
+
 export function correctPlay(ctx: DecisionContext, rules: Rules): Action {
   const family = deckFamily(rules.decks)
   const dealerRule: DealerRule = rules.hitSoft17 ? 'H17' : 'S17'
@@ -101,6 +151,15 @@ export function correctPlay(ctx: DecisionContext, rules: Rules): Action {
 
   if (canSplit) {
     const key = pairRankKey(ctx.cards)
+    if (
+      rules.earlySurrender &&
+      rules.peek &&
+      !ctx.postSplit &&
+      earlySurrenderMatches(family, dealerRule, up, value.total, value.soft, ctx.cards, pairKey) &&
+      !earlyPairCarveOut(up, key, family, rules.doubleAfterSplit)
+    ) {
+      return 'surrender'
+    }
     let cell = cellAt(chart.pairs[key]!, up)
     if (!rules.doubleAfterSplit) {
       const blocked = NO_DAS_OVERRIDES[family][key]
@@ -148,6 +207,16 @@ export function correctPlay(ctx: DecisionContext, rules: Rules): Action {
 
   const row = value.soft ? chart.soft[value.total]! : chart.hard[value.total]!
   const cell = cellAt(row, up)
+
+  if (
+    rules.earlySurrender &&
+    rules.peek &&
+    !ctx.postSplit &&
+    ctx.cards.length === 2 &&
+    earlySurrenderMatches(family, dealerRule, up, value.total, value.soft, ctx.cards, pairKey)
+  ) {
+    return 'surrender'
+  }
 
   if (
     rules.lateSurrender &&

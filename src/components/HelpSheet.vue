@@ -37,6 +37,8 @@ defineProps<{ onClose: () => void }>()
     <ul>
       <li><strong>Peek</strong> — dealer checks for blackjack first; you only lose your original bet.</li>
       <li><strong>ENHC</strong> — dealer checks last; doubles and splits lose everything to a dealer blackjack.</li>
+      <li><strong>Late surrender</strong> — forfeit half after the peek clears (e.g. 16 vs 10).</li>
+      <li><strong>Early surrender</strong> — forfeit half before the peek, even vs ace/ten (e.g. 14 vs 10, 6 vs ace).</li>
       <li><strong>DAS</strong> — double after split allowed. <strong>H17</strong> — dealer hits soft 17.</li>
       <li><strong>Penetration</strong> — how deeply the shoe is dealt before reshuffling.</li>
     </ul>

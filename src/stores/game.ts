@@ -104,7 +104,9 @@ export function createGameStore(settings: SettingsStore, stats: StatsStore, engi
   /** Practice rules: the skip-surrender option removes surrender from grading too. */
   function practiceRules(): Rules {
     const rules = settings.state.rules
-    return settings.state.practice.skipSurrender ? { ...rules, lateSurrender: false } : rules
+    return settings.state.practice.skipSurrender
+      ? { ...rules, lateSurrender: false, earlySurrender: false }
+      : rules
   }
 
   /** Decision context of the hand the player currently acts on. */
