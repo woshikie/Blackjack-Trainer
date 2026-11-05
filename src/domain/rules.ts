@@ -16,6 +16,8 @@ export interface Rules {
   resplitAces: boolean
   doubleOn: DoubleRule
   lateSurrender: boolean
+  /** Surrender before the dealer peeks (much wider strategy vs ace/ten). */
+  earlySurrender: boolean
   insurance: boolean
   /** true = dealer checks first (US peek), false = ENHC (checks last). */
   peek: boolean
@@ -37,6 +39,7 @@ export const DEFAULT_RULES: Rules = {
   resplitAces: false,
   doubleOn: 'any',
   lateSurrender: true,
+  earlySurrender: false,
   insurance: true,
   peek: true,
   csm: false,
@@ -45,10 +48,13 @@ export const DEFAULT_RULES: Rules = {
   maxBet: 0,
 }
 
-/** ENHC tables do not offer late surrender. */
+/** ENHC tables do not offer surrender; early surrender implies late. */
 export function normalizeRules(rules: Rules): Rules {
-  if (!rules.peek && rules.lateSurrender) {
-    return { ...rules, lateSurrender: false }
+  if (!rules.peek && (rules.lateSurrender || rules.earlySurrender)) {
+    return { ...rules, lateSurrender: false, earlySurrender: false }
+  }
+  if (rules.earlySurrender && !rules.lateSurrender) {
+    return { ...rules, lateSurrender: true }
   }
   return rules
 }

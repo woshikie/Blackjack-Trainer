@@ -379,6 +379,22 @@ describe('action legality', () => {
     expect(noLS.availableActions()).not.toContain('surrender')
   })
 
+  it('offers surrender on early-surrender tables (normalized to late)', () => {
+    const game = makeGame({ lateSurrender: false, earlySurrender: true }, [c('T'), c('T'), c('6'), c('8')])
+    expect(game.currentRules.lateSurrender).toBe(true)
+    game.placeBet(BET)
+    game.deal()
+    expect(game.availableActions()).toContain('surrender')
+  })
+
+  it('offers no surrender under ENHC even when early is requested', () => {
+    const game = makeGame({ earlySurrender: true, peek: false }, [c('T'), c('T'), c('6')])
+    expect(game.currentRules.earlySurrender).toBe(false)
+    game.placeBet(BET)
+    game.deal()
+    expect(game.availableActions()).not.toContain('surrender')
+  })
+
   it('reports double range eligibility directly', () => {
     const game = makeGame({ doubleOn: '9-11' }, [])
     expect(game.doubleRangeOk(10, false)).toBe(true)
