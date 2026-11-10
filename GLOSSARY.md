@@ -128,7 +128,7 @@ Dealer Hits / Stands on Soft 17.
 Doubling is allowed on split hands.
 
 **Late Surrender**:
-Surrendering the hand and forfeiting half the bet, available only after the dealer has confirmed no Blackjack (Peek games).
+Surrendering the hand and forfeiting half the bet, available only after the dealer has confirmed no Blackjack (Peek games). One three-way table setting: None / Late / Early.
 
 **Early Surrender**:
 Surrendering before the dealer checks for Blackjack: forfeit half the bet even against an ace or ten that might already be a natural. Much wider strategy than late surrender (hard 5-7 and 12-17 vs ace; hard 14-16 vs ten; pairs 3/6/7/8 vs ace) — rare in modern casinos, mostly found in older Vegas and some overseas games.

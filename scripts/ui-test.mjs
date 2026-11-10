@@ -117,6 +117,16 @@ try {
     const practiceBack = (await page.locator('.bank-controls').count()) === 1
     if (!practiceBack) fail(`${label}: practice view did not return`)
 
+    // Help renders its surrender chart (live engine output) without errors
+    await page.locator('nav .icon[title="Help"]').tap()
+    if ((await page.locator('.strat-chart').count()) < 2) {
+      fail(`${label}: surrender chart missing in Help`)
+    } else {
+      console.log(`${label}: surrender chart renders — ok`)
+    }
+    await page.locator('.sheet-header .link', { hasText: 'Close' }).tap()
+    if ((await page.locator('.sheet').count()) !== 0) fail(`${label}: Help sheet did not close`)
+
     if (errors.length > 0) fail(`${label}: page errors ${JSON.stringify(errors)}`)
     await context.close()
   }
