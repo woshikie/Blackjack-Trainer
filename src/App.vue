@@ -125,7 +125,7 @@ onUnmounted(() => window.removeEventListener('keydown', onKey))
 
     <SettingsSheet v-if="sheet === 'settings'" :settings="settings" :on-close="closeSheet" />
     <StatsSheet v-else-if="sheet === 'stats'" :stats="stats" :on-close="closeSheet" />
-    <HelpSheet v-else-if="sheet === 'help'" :on-close="closeSheet" />
+    <HelpSheet v-else-if="sheet === 'help'" :settings="settings" :on-close="closeSheet" />
     <SelfTestSheet v-else-if="sheet === 'selftest'" :on-close="closeSheet" />
   </div>
 </template>

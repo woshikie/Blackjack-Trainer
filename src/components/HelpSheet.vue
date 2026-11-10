@@ -1,5 +1,70 @@
 <script setup lang="ts">
-defineProps<{ onClose: () => void }>()
+import { computed } from 'vue'
+import type { Card, Rank } from '../domain/cards'
+import { deckFamily } from '../domain/strategy/charts'
+import { correctPlay } from '../domain/strategy/correctPlay'
+import type { Action } from '../domain/strategy/correctPlay'
+import type { SettingsStore } from '../stores/settings'
+
+const props = defineProps<{ settings: SettingsStore; onClose: () => void }>()
+
+const HARD_TOTALS = [5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17]
+const HARD_UPS: Rank[] = ['9', 'T', 'A']
+const PAIR_RANKS: Rank[] = ['A', '2', '3', '4', '5', '6', '7', '8', '9', 'T']
+const PAIR_UPS: Rank[] = ['T', 'A']
+
+function cardOf(rank: Rank): Card {
+  return { rank, suit: 'S' }
+}
+
+/** Canonical two-card hand per hard total; 14 uses 8+6 (no composition exception). */
+function hardHand(total: number): Card[] {
+  if (total === 14) return [cardOf('8'), cardOf('6')]
+  if (total <= 11) return [cardOf('2'), cardOf(String(total - 2) as Rank)]
+  return [cardOf('T'), cardOf(String(total - 10) as Rank)]
+}
+
+function play(cards: Card[], up: Rank): Action {
+  return correctPlay(
+    {
+      cards,
+      dealerUp: cardOf(up),
+      postSplit: false,
+      splitAces: false,
+      numHands: 1,
+      fundsForDouble: true,
+    },
+    props.settings.state.rules,
+  )
+}
+
+const LETTER: Record<Action, string> = { hit: 'H', stand: 'S', double: 'D', split: 'P', surrender: 'X' }
+
+const modeLabel = computed(() =>
+  props.settings.state.rules.earlySurrender
+    ? 'Early'
+    : props.settings.state.rules.lateSurrender
+      ? 'Late'
+      : 'Off',
+)
+
+const tableLabel = computed(() => {
+  const family = deckFamily(props.settings.state.rules.decks)
+  const decks = family === '1' ? 'single deck' : family === '2' ? 'double deck' : '4+ decks'
+  return `${decks} · ${props.settings.state.rules.hitSoft17 ? 'H17' : 'S17'}`
+})
+
+const hardCells = computed<Action[][]>(() =>
+  HARD_TOTALS.map((total) => HARD_UPS.map((up) => play(hardHand(total), up))),
+)
+
+const pairCells = computed<Action[][]>(() =>
+  PAIR_RANKS.map((rank) => PAIR_UPS.map((up) => play([cardOf(rank), cardOf(rank)], up))),
+)
+
+function upLabel(up: Rank): string {
+  return up === 'T' ? '10' : up
+}
 </script>
 
 <template>
@@ -32,6 +97,41 @@ defineProps<{ onClose: () => void }>()
       exposed cards; the true count is the running count divided by the decks remaining.
       Insurance becomes correct at a true count of +3 or higher. With a continuous
       shuffling machine the count is meaningless, so the overlay is disabled.</p>
+
+    <h3>Surrender chart</h3>
+    <p class="muted">{{ modeLabel }} surrender · {{ tableLabel }} (your current table rules)</p>
+    <template v-if="modeLabel !== 'Off'">
+      <table class="strat-chart">
+        <thead>
+          <tr><th scope="col">Hard</th><th v-for="up in HARD_UPS" :key="up" scope="col">{{ upLabel(up) }}</th></tr>
+        </thead>
+        <tbody>
+          <tr v-for="(total, row) in HARD_TOTALS" :key="total">
+            <th scope="row">{{ total }}</th>
+            <td v-for="(up, col) in HARD_UPS" :key="up" :class="{ surr: hardCells[row]![col] === 'surrender' }">
+              {{ LETTER[hardCells[row]![col]!] }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <table class="strat-chart">
+        <thead>
+          <tr><th scope="col">Pair</th><th v-for="up in PAIR_UPS" :key="up" scope="col">{{ upLabel(up) }}</th></tr>
+        </thead>
+        <tbody>
+          <tr v-for="(rank, row) in PAIR_RANKS" :key="rank">
+            <th scope="row">{{ rank === 'T' ? '10,10' : `${rank},${rank}` }}</th>
+            <td v-for="(up, col) in PAIR_UPS" :key="up" :class="{ surr: pairCells[row]![col] === 'surrender' }">
+              {{ LETTER[pairCells[row]![col]!] }}
+            </td>
+          </tr>
+        </tbody>
+      </table>
+      <p class="muted">X = surrender, computed live from the same engine that grades you.
+        Hard 14 vs 10 uses 8+6 here; single-deck T+4 and 9+5, and double-deck T+4,
+        play out instead. Single-deck 8,8 vs 10 splits when DAS is allowed.</p>
+    </template>
+    <p v-else class="muted">Surrender is off — pick Late or Early under Settings → Table rules (needs Peek on).</p>
 
     <h3>Rules glossary</h3>
     <ul>

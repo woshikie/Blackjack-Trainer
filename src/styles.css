@@ -810,6 +810,33 @@ button.deal {
   flex: 1;
 }
 
+/* Surrender chart (Help): rows are player totals/pairs, columns the bank
+   upcard; X cells are the surrender spots under the current table rules. */
+.strat-chart {
+  border-collapse: collapse;
+  margin: 8px 8px 8px 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.strat-chart th,
+.strat-chart td {
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 4px 8px;
+  text-align: center;
+  font-size: 0.85rem;
+}
+
+.strat-chart th {
+  color: var(--muted);
+  background: rgba(0, 0, 0, 0.25);
+}
+
+.strat-chart td.surr {
+  background: rgba(224, 122, 95, 0.25);
+  color: var(--danger);
+  font-weight: 800;
+}
+
 .stat-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);

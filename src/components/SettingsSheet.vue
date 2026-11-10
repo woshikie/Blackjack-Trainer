@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { DeckCount, DoubleRule } from '../domain/rules'
 import type { AutoDeal, FeedbackMode, SettingsStore } from '../stores/settings'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 const props = defineProps<{ settings: SettingsStore; onClose: () => void }>()
 const settings = props.settings
@@ -42,14 +42,23 @@ async function forceUpdate(): Promise<void> {
   window.location.reload()
 }
 
-function onEarlySurrender(checked: boolean): void {
-  if (checked) settings.updateRules({ earlySurrender: true, lateSurrender: true })
-  else settings.updateRules({ earlySurrender: false })
-}
+type SurrenderMode = 'none' | 'late' | 'early'
 
-function onLateSurrender(checked: boolean): void {
-  if (!checked) settings.updateRules({ lateSurrender: false, earlySurrender: false })
-  else settings.updateRules({ lateSurrender: true })
+const SURRENDER_MODES: readonly { value: SurrenderMode; label: string }[] = [
+  { value: 'none', label: 'None' },
+  { value: 'late', label: 'Late surrender' },
+  { value: 'early', label: 'Early surrender' },
+]
+
+/** The table offers one surrender choice; early implies late internally. */
+const surrenderMode = computed<SurrenderMode>(() =>
+  state.rules.earlySurrender ? 'early' : state.rules.lateSurrender ? 'late' : 'none',
+)
+
+function onSurrenderMode(mode: SurrenderMode): void {
+  if (mode === 'early') settings.updateRules({ earlySurrender: true, lateSurrender: true })
+  else if (mode === 'late') settings.updateRules({ earlySurrender: false, lateSurrender: true })
+  else settings.updateRules({ earlySurrender: false, lateSurrender: false })
 }
 
 function onDenominationsChange(event: Event): void {
@@ -94,6 +103,12 @@ function onDenominationsChange(event: Event): void {
           <option :value="4">4 hands</option>
         </select>
       </label>
+      <label :class="{ disabled: !state.rules.peek }">Surrender
+        <select :value="surrenderMode" :disabled="!state.rules.peek" @change="onSurrenderMode(($event.target as HTMLSelectElement).value as SurrenderMode)">
+          <option v-for="mode in SURRENDER_MODES" :key="mode.value" :value="mode.value">{{ mode.label }}</option>
+        </select>
+        <small>Late = after the peek; early = before it, wider vs ace and ten</small>
+      </label>
       <label>Table minimum
         <input type="number" :min="1" :value="state.rules.minBet" @change="settings.updateRules({ minBet: Math.max(1, Number(($event.target as HTMLInputElement).value) || 1) })" />
       </label>
@@ -111,13 +126,6 @@ function onDenominationsChange(event: Event): void {
       <label>
         <input v-model="state.rules.peek" type="checkbox" /> Dealer checks for blackjack first (peek)
         <small>Unchecked = European no hole card; surrender is not offered</small>
-      </label>
-      <label :class="{ disabled: !state.rules.peek }">
-        <input :checked="state.rules.lateSurrender" type="checkbox" :disabled="!state.rules.peek" @change="onLateSurrender(($event.target as HTMLInputElement).checked)" /> Late surrender
-      </label>
-      <label :class="{ disabled: !state.rules.peek }">
-        <input :checked="state.rules.earlySurrender" type="checkbox" :disabled="!state.rules.peek" @change="onEarlySurrender(($event.target as HTMLInputElement).checked)" /> Early surrender
-        <small>Surrender before the dealer peeks; much wider strategy vs ace and ten</small>
       </label>
       <label>
         <input v-model="state.rules.csm" type="checkbox" /> Continuous shuffling machine (CSM)
