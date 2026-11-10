@@ -231,7 +231,10 @@ export function correctPlay(ctx: DecisionContext, rules: Rules): Action {
   if (
     (cell === 'D' || cell === 'T') &&
     doublePermitted(rules, value.total, value.soft, ctx.cards.length, ctx.postSplit, ctx.fundsForDouble) &&
-    !(!rules.peek && enhcUpBlocked(up))
+    // No-peek games block doubles vs T/A (the extra wager is exposed) —
+    // unless OBBO caps the loss at the original unit, which restores peek
+    // doubling exactly (a basic-strategy double can never bust its one card).
+    !(!rules.peek && !rules.obbo && enhcUpBlocked(up))
   ) {
     return 'double'
   }

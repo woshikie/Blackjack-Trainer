@@ -36,6 +36,7 @@ Canonical 4–8 deck charts follow standard Vegas multi-deck basic strategy (ver
 - Early surrender (before the peek) uses the Wizard of Odds early table: vs ace, hard 5-7 and 12-17 plus pairs 3/6/7/8 (2s only in H17); vs ten, hard 14-16 and pairs 7/8 — with single-deck T+4 / 9+5 and double-deck T+4 playing out, and single-deck 8,8 vs 10 splitting under DAS.
 - No-DAS pair cells revert to HIT directly (4,4 vs 5 without DAS hits; a plain hard 8 would double).
 - ENHC (no-peek) games block doubles/splits vs T/A (except A,A vs T) and disable surrender.
+- OBBO (original and busted bets only): vs a no-peek dealer natural, doubled hands are refunded to one unit and each live split hand loses its unit; busted hands lose everything. Doubles follow the peek chart (a basic-strategy double can never bust its one card); splits keep the conservative ENHC handling — exact OBBO split charts are not encoded.
 - See `docs/adr/0001-strategy-engine-charts-over-simulation.md` and `GLOSSARY.md` for the full model.
 
 ## Deploy

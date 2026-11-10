@@ -155,6 +155,31 @@ describe('ENHC flow', () => {
     expect(game.bankroll).toBe(START_BANKROLL - 2 * BET)
   })
 
+  it('refunds the double increment under OBBO but keeps the original', () => {
+    // P:5, up:T, P:6 → double 11, draw 5 for 16; hole A → dealer natural
+    const game = makeGame({ peek: false, obbo: true }, [c('5'), c('T'), c('6'), c('5'), c('A')])
+    game.placeBet(BET)
+    game.deal()
+    game.decide('double')
+    expect(game.phase).toBe('settled')
+    expect(game.hands[0]!.result).toBe('lose')
+    expect(game.hands[0]!.bet).toBe(BET)
+    expect(game.bankroll).toBe(START_BANKROLL - BET)
+  })
+
+  it('takes one unit per split hand under OBBO', () => {
+    // P:8, up:T, P:8; split → 8+5=13, 8+9=17; hole A → dealer natural
+    const game = makeGame({ peek: false, obbo: true }, [c('8'), c('T'), c('8'), c('5'), c('9'), c('A')])
+    game.placeBet(BET)
+    game.deal()
+    game.decide('split')
+    game.decide('stand')
+    game.decide('stand')
+    expect(game.phase).toBe('settled')
+    expect(game.hands.map((hand) => hand.result)).toEqual(['lose', 'lose'])
+    expect(game.bankroll).toBe(START_BANKROLL - 2 * BET)
+  })
+
   it('pays player naturals immediately, before the dealer checks', () => {
     const game = makeGame({ peek: false }, [c('A'), c('5'), c('K')])
     game.placeBet(BET)

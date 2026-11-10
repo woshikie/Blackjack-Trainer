@@ -173,6 +173,10 @@ const SPOT_CHECKS: SpotCheck[] = [
   { name: 'early: soft 18 v A hits (no surrender)', cards: [card('A'), card('7')], up: 'A', rules: { earlySurrender: true }, expect: 'hit' },
   { name: 'early: ENHC hard 16 v T hits', cards: [card('T'), card('6')], up: 'T', rules: { earlySurrender: true, peek: false }, expect: 'hit' },
   { name: 'early: post-split hard 16 v T hits', cards: [card('T'), card('6')], up: 'T', rules: { earlySurrender: true }, context: { postSplit: true }, expect: 'hit' },
+  { name: 'OBBO: hard 11 v T doubles in ENHC', cards: [card('5'), card('6')], up: 'T', rules: { peek: false, obbo: true }, expect: 'double' },
+  { name: 'OBBO: hard 11 v A doubles in H17 ENHC', cards: [card('5'), card('6')], up: 'A', rules: { peek: false, obbo: true, hitSoft17: true }, expect: 'double' },
+  { name: 'OBBO: A,A v T splits', cards: [card('A'), card('A')], up: 'T', rules: { peek: false, obbo: true }, expect: 'split' },
+  { name: 'OBBO: 8,8 v A hits (ENHC split handling kept)', cards: [card('8'), card('8')], up: 'A', rules: { peek: false, obbo: true }, expect: 'hit' },
 ]
 
 export function runSelfTest(): Check[] {

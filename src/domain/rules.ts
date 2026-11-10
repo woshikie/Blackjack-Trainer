@@ -18,6 +18,13 @@ export interface Rules {
   lateSurrender: boolean
   /** Surrender before the dealer peeks (much wider strategy vs ace/ten). */
   earlySurrender: boolean
+  /**
+   * Original and Busted Bets Only: vs a dealer natural in a no-peek game,
+   * each live hand loses one unit (double increments refunded) and busted
+   * hands lose everything. Dormant in peek games (dealer BJ ends the hand
+   * before any extra bet exists).
+   */
+  obbo: boolean
   insurance: boolean
   /** true = dealer checks first (US peek), false = ENHC (checks last). */
   peek: boolean
@@ -40,6 +47,7 @@ export const DEFAULT_RULES: Rules = {
   doubleOn: 'any',
   lateSurrender: true,
   earlySurrender: false,
+  obbo: false,
   insurance: true,
   peek: true,
   csm: false,

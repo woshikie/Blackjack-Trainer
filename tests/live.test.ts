@@ -123,6 +123,17 @@ describe('live store — card entry', () => {
     expect(live.dealer.value).toBe('T')
     expect(live.advice.value?.action).toBe('surrender')
   })
+
+  it('advises peek-style doubles vs a ten under OBBO', () => {
+    const { settings, live } = makeLive()
+    settings.updateRules({ peek: false, obbo: true })
+    live.pick('5')
+    live.pick('T')
+    live.pick('6')
+    expect(live.activeCards.value).toEqual(['5', '6'])
+    expect(live.dealer.value).toBe('T')
+    expect(live.advice.value?.action).toBe('double')
+  })
 })
 
 describe('live store — splits', () => {

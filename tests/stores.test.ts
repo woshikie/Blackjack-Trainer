@@ -102,6 +102,17 @@ describe('settings store', () => {
     expect(store.state.rules.lateSurrender).toBe(true)
   })
 
+  it('keeps OBBO independent of peek (dormant, never cleared)', () => {
+    const store = createSettingsStore(null)
+    expect(store.state.rules.obbo).toBe(false)
+    store.updateRules({ obbo: true })
+    expect(store.state.rules.obbo).toBe(true)
+    store.updateRules({ peek: false })
+    expect(store.state.rules.obbo).toBe(true)
+    store.updateRules({ peek: true })
+    expect(store.state.rules.obbo).toBe(true)
+  })
+
   it('implies late surrender when early is on and clears both under ENHC', () => {
     const store = createSettingsStore(null)
     store.updateRules({ earlySurrender: true })
