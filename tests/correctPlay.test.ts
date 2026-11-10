@@ -394,6 +394,29 @@ describe('early surrender', () => {
   })
 })
 
+describe('OBBO (no-peek, original and busted bets only)', () => {
+  function obbo(partial: Partial<Rules> = {}): Rules {
+    return baseRules({ peek: false, obbo: true, ...partial })
+  }
+
+  it('restores peek doubling vs ten/ace (doubles cannot bust)', () => {
+    expect(correctPlay(context([c('5'), c('6')], 'T'), obbo())).toBe('double')
+    expect(correctPlay(context([c('6'), c('5')], 'A'), obbo({ hitSoft17: true }))).toBe('double')
+    // ...while plain ENHC still blocks the extra wager
+    expect(correctPlay(context([c('5'), c('6')], 'T'), baseRules({ peek: false }))).toBe('hit')
+  })
+
+  it('keeps ENHC split handling vs ace (each split hand exposes a unit)', () => {
+    expect(correctPlay(context([c('8'), c('8')], 'A'), obbo())).toBe('hit')
+    expect(correctPlay(context([c('A'), c('A')], 'A'), obbo())).toBe('hit')
+    expect(correctPlay(context([c('A'), c('A')], 'T'), obbo())).toBe('split')
+  })
+
+  it('stays dormant in peek games', () => {
+    expect(correctPlay(context([c('8'), c('8')], 'A'), baseRules({ obbo: true }))).toBe('split')
+  })
+})
+
 describe('insuranceCorrect', () => {
   it('declines insurance without counting', () => {
     expect(insuranceCorrect(false, 10)).toBe(false)

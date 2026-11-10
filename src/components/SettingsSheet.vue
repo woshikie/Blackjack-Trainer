@@ -123,6 +123,10 @@ function onDenominationsChange(event: Event): void {
       <label><input v-model="state.rules.splitAcesOneCard" type="checkbox" /> Split aces receive one card</label>
       <label><input v-model="state.rules.resplitAces" type="checkbox" /> Resplit aces</label>
       <label><input v-model="state.rules.insurance" type="checkbox" /> Insurance offered</label>
+      <label :class="{ disabled: state.rules.peek }">
+        <input v-model="state.rules.obbo" type="checkbox" :disabled="state.rules.peek" /> Dealer BJ takes original bets only (OBBO)
+        <small>No-peek tables: doubles refunded, each live hand loses one unit</small>
+      </label>
       <label>
         <input v-model="state.rules.peek" type="checkbox" /> Dealer checks for blackjack first (peek)
         <small>Unchecked = European no hole card; surrender is not offered</small>

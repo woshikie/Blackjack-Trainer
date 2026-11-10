@@ -18,6 +18,8 @@ export interface PlayerHand {
   id: number
   cards: Card[]
   bet: number
+  /** Wager before any double increment; OBBO refunds bet minus baseBet vs a dealer natural. */
+  baseBet: number
   doubled: boolean
   fromSplit: boolean
   splitAces: boolean
@@ -117,6 +119,7 @@ export class Game {
       id: this.nextHandId++,
       cards,
       bet,
+      baseBet: bet,
       doubled: false,
       fromSplit: false,
       splitAces: false,
@@ -358,7 +361,15 @@ export class Game {
     }
     if (!this.rules.peek && this.isDealerNatural()) {
       for (const hand of this.hands) {
-        if (hand.result === null && !hand.surrendered) hand.result = 'lose'
+        if (hand.result === null && !hand.surrendered) {
+          // OBBO: live hands lose one unit (double increments come back);
+          // busted hands (result set) and splits at face value lose in full.
+          if (this.rules.obbo) {
+            this.bankroll += hand.bet - hand.baseBet
+            hand.bet = hand.baseBet
+          }
+          hand.result = 'lose'
+        }
       }
       this.message = 'Dealer blackjack'
       this.settle()
